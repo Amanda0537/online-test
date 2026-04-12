@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暗恋信号分析</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-height:100vh;}
+#app{min-height:100vh;position:relative;overflow:hidden;}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d) ease-in-out infinite alternate;}
+@keyframes twinkle{from{opacity:var(--a1);transform:scale(1);}to{opacity:var(--a2);transform:scale(1.4);}}
+.screen{position:relative;z-index:1;display:none;flex-direction:column;align-items:center;padding:64px 24px 60px;min-height:100vh;}
+.screen.active{display:flex;}
+
+/* LANDING */
+#screen-landing{justify-content:center;text-align:center;gap:0;}
+.eyebrow{font-size:11px;letter-spacing:4px;color:#b49fd4;text-transform:uppercase;margin-bottom:28px;opacity:0;animation:fadeUp .6s .2s forwards;}
+.landing-title{font-family:'Noto Serif SC',serif;font-size:clamp(28px,6vw,44px);font-weight:300;line-height:1.35;color:#f0eaff;margin-bottom:20px;opacity:0;animation:fadeUp .7s .4s forwards;}
+.landing-title em{font-style:normal;color:#c4a8f5;}
+.landing-sub{font-size:15px;color:#9080a8;line-height:1.8;max-width:300px;margin-bottom:44px;opacity:0;animation:fadeUp .7s .6s forwards;}
+.hook-question{font-family:'Noto Serif SC',serif;font-size:15px;color:#c4a8f5;border-left:2px solid #7a5abf;padding-left:16px;text-align:left;max-width:280px;line-height:1.8;margin-bottom:48px;opacity:0;animation:fadeUp .7s .8s forwards;}
+.btn-start{background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:15px;padding:15px 44px;border-radius:40px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s;opacity:0;animation:fadeUp .7s 1s forwards;}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(160,122,208,.4);}
+.trust-line{margin-top:18px;font-size:11px;color:#5a4a70;opacity:0;animation:fadeUp .6s 1.2s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+/* QUIZ */
+#screen-quiz{justify-content:flex-start;gap:0;max-width:520px;margin:0 auto;width:100%;}
+.progress-wrap{width:100%;margin-bottom:40px;}
+.progress-info{display:flex;justify-content:space-between;font-size:11px;color:#7060a0;margin-bottom:10px;letter-spacing:1px;}
+.progress-bar-bg{height:2px;background:#2a1f3d;border-radius:2px;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,#7a5abf,#c4a8f5);border-radius:2px;transition:width .4s ease;}
+.dim-label{font-size:10px;letter-spacing:3px;color:#7a5abf;text-transform:uppercase;margin-bottom:14px;}
+.q-text{font-family:'Noto Serif SC',serif;font-size:clamp(17px,4vw,22px);font-weight:300;color:#f0eaff;line-height:1.7;margin-bottom:32px;}
+.options{width:100%;display:flex;flex-direction:column;gap:10px;}
+.opt{background:rgba(255,255,255,.04);border:0.5px solid rgba(180,150,220,.2);border-radius:12px;padding:15px 20px;font-size:14px;color:#c8bce0;cursor:pointer;text-align:left;transition:background .2s,border-color .2s,transform .15s;line-height:1.55;}
+.opt:hover{background:rgba(122,90,191,.15);border-color:rgba(180,150,220,.5);transform:translateX(4px);}
+.opt.selected{background:rgba(122,90,191,.25);border-color:#7a5abf;color:#e8dcff;}
+.quiz-nav{margin-top:32px;display:flex;justify-content:space-between;align-items:center;width:100%;}
+.btn-nav{background:none;border:0.5px solid rgba(180,150,220,.3);color:#9080a8;font-family:'Noto Sans SC',sans-serif;font-size:13px;padding:10px 22px;border-radius:24px;cursor:pointer;transition:all .2s;}
+.btn-nav:hover{border-color:#7a5abf;color:#c4a8f5;}
+.btn-nav:disabled{opacity:.3;cursor:default;}
+.btn-next{background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:13px;padding:10px 26px;border-radius:24px;cursor:pointer;transition:transform .2s,opacity .2s;opacity:.4;pointer-events:none;}
+.btn-next.enabled{opacity:1;pointer-events:all;}
+.btn-next.enabled:hover{transform:translateY(-1px);}
+
+/* RESULT */
+#screen-result{justify-content:flex-start;text-align:center;max-width:520px;margin:0 auto;width:100%;gap:0;}
+.res-section{width:100%;margin-bottom:24px;}
+.result-eyebrow{font-size:10px;letter-spacing:4px;color:#7a5abf;text-transform:uppercase;margin-bottom:24px;}
+.score-circle{width:120px;height:120px;border-radius:50%;border:1.5px solid rgba(180,150,220,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 28px;position:relative;}
+.score-circle::before{content:'';position:absolute;inset:7px;border-radius:50%;border:0.5px solid rgba(196,168,245,.2);}
+.score-num{font-family:'Noto Serif SC',serif;font-size:38px;font-weight:300;color:#c4a8f5;line-height:1;}
+.score-max{font-size:11px;color:#6050a0;}
+.result-title{font-family:'Noto Serif SC',serif;font-size:clamp(19px,5vw,26px);font-weight:300;color:#f0eaff;margin-bottom:10px;line-height:1.4;}
+.result-desc{font-size:14px;color:#9080a8;line-height:1.9;max-width:340px;margin:0 auto 28px;}
+
+.resonance-box{background:rgba(122,90,191,.1);border:0.5px solid rgba(196,168,245,.2);border-radius:16px;padding:22px 24px;text-align:left;margin-bottom:28px;}
+.resonance-text{font-family:'Noto Serif SC',serif;font-size:15px;color:#d4c4f0;line-height:1.9;font-weight:300;}
+
+.dim-section-label{font-size:10px;letter-spacing:3px;color:#7a5abf;text-transform:uppercase;margin-bottom:18px;text-align:left;}
+.dim-bars{width:100%;display:flex;flex-direction:column;gap:16px;margin-bottom:8px;text-align:left;}
+.dim-row-head{display:flex;justify-content:space-between;font-size:12px;color:#7060a0;margin-bottom:7px;}
+.dim-bar-bg{height:3px;background:#1e1530;border-radius:3px;}
+.dim-bar-fill{height:100%;background:linear-gradient(90deg,#7a5abf,#c4a8f5);border-radius:3px;transition:width 1.2s ease;}
+
+.highlight-box{background:rgba(196,168,245,.06);border-left:2px solid #7a5abf;border-radius:0 12px 12px 0;padding:18px 20px;text-align:left;margin-bottom:24px;}
+.highlight-label{font-size:10px;letter-spacing:3px;color:#7a5abf;text-transform:uppercase;margin-bottom:10px;}
+.highlight-text{font-size:13px;color:#b8a8d8;line-height:1.85;}
+.highlight-dim{color:#c4a8f5;font-weight:500;}
+
+.special-box{background:rgba(255,200,100,.04);border:0.5px solid rgba(255,200,100,.15);border-radius:12px;padding:18px 20px;text-align:left;margin-bottom:24px;display:none;}
+.special-label{font-size:10px;letter-spacing:3px;color:#d4a820;text-transform:uppercase;margin-bottom:10px;}
+.special-text{font-size:13px;color:#c8a860;line-height:1.85;}
+
+.share-section{width:100%;margin-bottom:16px;}
+.share-title{font-size:12px;color:#6050a0;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.btn-send{width:100%;background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:14px;padding:15px;border-radius:12px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s;margin-bottom:12px;}
+.btn-send:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(122,90,191,.4);}
+.share-card{background:#13102a;border:0.5px solid rgba(196,168,245,.25);border-radius:16px;padding:26px 24px;text-align:left;margin-bottom:16px;display:none;}
+.share-card.visible{display:block;}
+.sc-eyebrow{font-size:10px;letter-spacing:3px;color:#7a5abf;text-transform:uppercase;margin-bottom:16px;}
+.sc-body{font-family:'Noto Serif SC',serif;font-size:14px;color:#c8bce0;line-height:1.9;margin-bottom:18px;white-space:pre-line;}
+.sc-link{font-size:12px;color:#7060a0;border-top:0.5px solid rgba(180,150,220,.15);padding-top:14px;}
+.btn-copy{background:rgba(122,90,191,.2);border:0.5px solid rgba(180,150,220,.3);color:#c4a8f5;font-family:'Noto Sans SC',sans-serif;font-size:12px;padding:9px 22px;border-radius:20px;cursor:pointer;transition:all .2s;margin-top:14px;}
+.btn-copy:hover{background:rgba(122,90,191,.35);}
+.btn-retry{background:none;border:0.5px solid rgba(180,150,220,.25);color:#7060a0;font-family:'Noto Sans SC',sans-serif;font-size:13px;padding:12px 32px;border-radius:40px;cursor:pointer;transition:all .2s;letter-spacing:1px;width:100%;}
+.btn-retry:hover{border-color:#7a5abf;color:#c4a8f5;}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="stars" id="stars"></div>
+
+<div class="screen active" id="screen-landing">
+  <p class="eyebrow">暗恋信号分析</p>
+  <h1 class="landing-title">他/她看你的眼神<br><em>和看别人不一样</em></h1>
+  <p class="landing-sub">还是你想多了？<br>15个行为信号，帮你分析清楚</p>
+  <p class="hook-question">最近有没有一瞬间，<br>觉得他/她好像也在看你？</p>
+  <button class="btn-start" onclick="startQuiz()">我想知道答案 →</button>
+  <p class="trust-line">已有 23,841 人测试 · 匿名 · 约 2 分钟完成</p>
+</div>
+
+<div class="screen" id="screen-quiz">
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span id="q-counter">第 1 题 / 共 15 题</span>
+      <span id="dim-name"></span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <p class="dim-label" id="dim-label"></p>
+  <p class="q-text" id="q-text"></p>
+  <div class="options" id="options"></div>
+  <div class="quiz-nav">
+    <button class="btn-nav" id="btn-prev" onclick="prevQ()">← 上一题</button>
+    <button class="btn-next" id="btn-next" onclick="nextQ()">下一题 →</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-result">
+  <p class="result-eyebrow">分析结果</p>
+  <div class="score-circle">
+    <span class="score-num" id="res-score">0</span>
+    <span class="score-max">/ 100</span>
+  </div>
+  <h2 class="result-title" id="res-title"></h2>
+  <p class="result-desc" id="res-desc"></p>
+
+  <div class="resonance-box res-section">
+    <p class="resonance-text" id="res-resonance"></p>
+  </div>
+
+  <div class="res-section" style="width:100%;text-align:left;">
+    <p class="dim-section-label">五维度分析</p>
+    <div class="dim-bars" id="dim-bars"></div>
+  </div>
+
+  <div class="highlight-box res-section">
+    <p class="highlight-label">最强信号解读</p>
+    <p class="highlight-text" id="highlight-text"></p>
+  </div>
+
+  <div class="special-box res-section" id="special-box">
+    <p class="special-label">⚡ 特殊信号提示</p>
+    <p class="special-text" id="special-text"></p>
+  </div>
+
+  <div class="share-section">
+    <p class="share-title">发给他/她看看？</p>
+    <button class="btn-send" onclick="toggleShareCard()">生成一张可以发给他/她的卡片 ✉</button>
+    <div class="share-card" id="share-card">
+      <p class="sc-eyebrow">暗恋信号分析</p>
+      <p class="sc-body" id="sc-body"></p>
+      <p class="sc-link">ta也在偷偷喜欢你吗？来测一测 →<br>crushtest.app</p>
+      <button class="btn-copy" onclick="copyCard()">复制文字</button>
+    </div>
+    <button class="btn-retry" onclick="retry()">重新测试</button>
+  </div>
+</div>
+</div>
+
+<script>
+const QUESTIONS=[
+  {dim:'注意力信号',q:'在一群人聚会时，你有没有感觉他/她的眼神经常落在你身上？',opts:['有，而且经常和我四目相对，然后他/她会移开视线','偶尔有，但不确定是不是我多想','没有特别注意，感觉和看别人差不多','反而感觉他/她刻意不看我'],scores:[7,5,3,6],special:3},
+  {dim:'注意力信号',q:'你换了发型、新衣服，或者有什么变化，他/她的反应是？',opts:['第一个注意到，还会专门说','注意到了，但只是随口一提','好像没注意，或者很久之后才提','从来不会评论我的外表变化'],scores:[7,5,3,1]},
+  {dim:'注意力信号',q:'你们不在一起时，他/她会向共同朋友打听你的事吗？',opts:['有，朋友还专门告诉过我','不确定，但感觉有这种可能','应该没有，至少没人告诉我','不会，他/她对我的事好像不感兴趣'],scores:[7,5,3,1]},
+  {dim:'沟通信号',q:'他/她主动找你聊天的频率是？',opts:['经常主动找我，有时候只是随便找个话题','偶尔会主动，但不算频繁','很少主动，基本都是我先开口','几乎不主动联系我'],scores:[7,5,3,1]},
+  {dim:'沟通信号',q:'你发消息给他/她，回复速度通常是？',opts:['几乎秒回，哪怕是深夜或者他/她很忙的时候','通常较快，偶尔慢了会补一句「刚才没看到」','看情况，有时快有时慢，不太稳定','经常很久才回，或者已读不回'],scores:[7,5,3,1]},
+  {dim:'沟通信号',q:'他/她会记得你随口说过的小细节吗？比如你爱吃什么、讨厌什么？',opts:['会，而且会在意想不到的时候提起来，让我很惊喜','偶尔会记得一些，但不是每次','好像没有特别记住过','完全不记得，感觉他/她根本没认真听我说话'],scores:[7,5,3,1]},
+  {dim:'肢体信号',q:'和你说话时，他/她和你的物理距离通常是？',opts:['明显比和别人说话时站得更近，有时候近到有点心跳加速','感觉稍微近一点，但不是很确定','和对其他人差不多，没有特别感觉','反而保持比较远的距离'],scores:[7,5,3,1]},
+  {dim:'肢体信号',q:'他/她有没有过无意识的肢体小动作？比如帮你整理衣服、轻拍肩膀、递东西时手会碰到你？',opts:['有，而且挺频繁的，感觉他/她自己都没意识到','偶尔有过一两次','几乎没有','完全没有，肢体接触很少'],scores:[7,5,3,1]},
+  {dim:'肢体信号',q:'在公共场合或集体活动里，他/她倾向于？',opts:['不知不觉总出现在我旁边，座位、站位都会靠近我','有时候会，但不是每次','随机，和在谁旁边都差不多','反而很少在我旁边'],scores:[7,5,3,1]},
+  {dim:'情绪信号',q:'你在场的时候，他/她的状态和平时相比？',opts:['明显更活跃、更爱说话，感觉像换了个人','好像稍微不一样，但不是很明显','和平时差不多，没什么变化','反而更安静或者更正经'],scores:[7,5,3,6],special:3},
+  {dim:'情绪信号',q:'你称赞他/她的时候，他/她的反应通常是？',opts:['明显开心，但会假装不在意，或者脸红、过度谦虚','高兴地接受，会说谢谢，感觉比较自然','随便回应一下，不太在意','几乎没有什么特别反应'],scores:[7,5,3,1]},
+  {dim:'情绪信号',q:'他/她在意你对他/她的看法吗？',opts:['非常在意，经常问我觉得他/她怎么样，或者做了某件事后会看我的反应','偶尔会在意，但不是每次','感觉无所谓，不太问我的意见','完全不在乎，甚至有点漠视'],scores:[7,5,3,1]},
+  {dim:'关心信号',q:'你遇到困难或者情绪不好的时候，他/她会？',opts:['主动察觉并出现，哪怕你没开口说，他/她也会问你怎么了','你说了他/她会关心，但不太会主动发现','偶尔关心一下，但不是很上心','基本不会特别关注你的状态'],scores:[7,5,3,1]},
+  {dim:'关心信号',q:'他/她记得你的重要日期吗？比如生日、考试、面试、重要活动？',opts:['记得，而且会主动问结果或者提前说加油','生日这种大日子记得，但其他小事不一定','偶尔记得，大部分时候不会主动提','基本不记得，需要我自己说他/她才知道'],scores:[7,5,3,1]},
+  {dim:'关心信号',q:'在群体中，如果有人开你玩笑或说你不好，他/她会？',opts:['第一个帮你说话或者转移话题，明显在维护你','不一定开口，但事后会私下问你还好吗','随大流，不会特别出来说什么','有时候自己也跟着起哄'],scores:[7,5,3,1]},
+];
+
+const DIMS=['注意力信号','沟通信号','肢体信号','情绪信号','关心信号'];
+const DIM_THEORIES={
+  '注意力信号':'注意力是最诚实的信号——人会本能地把目光投向自己在意的人，这种行为难以伪装。',
+  '沟通信号':'主动联系是情感投入最直接的表现。愿意找话题、记住细节，说明你在他/她心里占有重要位置。',
+  '肢体信号':'心理学研究表明，人在喜欢一个人时会本能地缩短物理距离——而这种行为往往是无意识的，极难伪装。',
+  '情绪信号':'在喜欢的人面前，情绪会不由自主地变得更丰富。那种"只有在你面前才不一样"的状态，很少是普通朋友能触发的。',
+  '关心信号':'记住你的日期、在你受委屈时站出来——这种主动保护的本能，往往只会给真正在乎的人。',
+};
+
+const RESULTS=[
+  {min:85,emoji:'💘',title:'他/她很可能也在偷偷喜欢你',desc:'信号已经相当明显了。这种程度的关注和在意，很少只是普通朋友之间的相处。',
+   resonance:'你早就感觉到了，对吗？只是需要有人告诉你——你没有想多。那些细节，你一个人反复回想过很多次了吧。',
+   shareText:'我做了一个暗恋信号测试，结果说他/她很可能也在偷偷喜欢我……\n\n你也来测测，看看你暗恋的人有没有在偷偷喜欢你？'},
+  {min:65,emoji:'🌸',title:'有明显的好感，正在悄悄观望',desc:'他/她对你的态度和对别人明显不同。可能因为某些原因还没有表达，但那份在意是真实存在的。',
+   resonance:'你们之间有些东西说不清楚，但又实实在在地存在着。也许他/她只是在等一个更合适的时机，或者等你先迈出那一步。',
+   shareText:'我做了一个暗恋信号测试，结果说他/她对我有明显好感，正在悄悄观望……\n\n你也来测测，看看你暗恋的人是什么感觉？'},
+  {min:40,emoji:'🌀',title:'信号时强时弱，有些难以捉摸',desc:'你们之间有一些暧昧的信号，但也有让你困惑的时候。可能是性格内敛，也可能还在犹豫中。',
+   resonance:'暗恋最难熬的，不是喜欢，是不确定。你现在大概就是这种感觉——有时候觉得是，有时候又开始怀疑。',
+   shareText:'我做了一个暗恋信号测试，结果说信号时强时弱，有点捉摸不透……\n\n你也来测测你的暗恋对象？'},
+  {min:0,emoji:'🌱',title:'目前信号较弱，但故事才刚开始',desc:'目前的行为信号不算强烈，但暗恋的故事很少在一开始就写在脸上。',
+   resonance:'信号弱，但你还是认认真真答完了15道题。光这一点，就说明你很在意。有些喜欢，是在相处中慢慢生长的。',
+   shareText:'我做了一个暗恋信号测试……结果嘛，先不说，你也来测测你的暗恋对象吧？'},
+];
+
+const SPECIAL_MSGS=[
+  {q:0,a:3,text:'你提到他/她在你出现时刻意不看你——这在心理学上被称为「回避性注意」，有时候反而是喜欢的表现。越在意，越不敢直视。'},
+  {q:9,a:3,text:'你提到他/她在你面前反而变得更安静——这被称为「紧张性抑制」，是一种因为在意而产生的情绪收缩。沉默，有时候比话多更说明问题。'},
+];
+
+let cur=0,answers=Array(15).fill(null);
+
+function makeStars(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const d=document.createElement('div');d.className='star';
+    const sz=Math.random()*2+.5;
+    d.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--a1:${(Math.random()*.3+.05).toFixed(2)};--a2:${(Math.random()*.5+.3).toFixed(2)};animation-delay:${(Math.random()*4).toFixed(1)}s`;
+    s.appendChild(d);
+  }
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function startQuiz(){cur=0;answers=Array(15).fill(null);show('screen-quiz');renderQ();}
+
+function renderQ(){
+  const Q=QUESTIONS[cur];
+  document.getElementById('q-counter').textContent=`第 ${cur+1} 题 / 共 15 题`;
+  document.getElementById('dim-name').textContent=Q.dim;
+  document.getElementById('dim-label').textContent=Q.dim;
+  document.getElementById('q-text').textContent=Q.q;
+  document.getElementById('progress-fill').style.width=((cur)/15*100)+'%';
+  const opts=document.getElementById('options');opts.innerHTML='';
+  Q.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='opt'+(answers[cur]===i?' selected':'');
+    b.textContent=o;b.onclick=()=>selectOpt(i);
+    opts.appendChild(b);
+  });
+  document.getElementById('btn-prev').disabled=cur===0;
+  const nb=document.getElementById('btn-next');
+  if(answers[cur]!==null)nb.classList.add('enabled');else nb.classList.remove('enabled');
+  nb.textContent=cur===14?'查看结果 ✨':'下一题 →';
+}
+
+function selectOpt(i){
+  answers[cur]=i;
+  document.querySelectorAll('.opt').forEach((b,idx)=>b.classList.toggle('selected',idx===i));
+  document.getElementById('btn-next').classList.add('enabled');
+}
+
+function nextQ(){if(answers[cur]===null)return;if(cur===14){showResult();return;}cur++;renderQ();}
+function prevQ(){if(cur>0){cur--;renderQ();}}
+
+function showResult(){
+  let total=0;
+  const dimScores={注意力信号:0,沟通信号:0,肢体信号:0,情绪信号:0,关心信号:0};
+  const dimMax={注意力信号:21,沟通信号:21,肢体信号:21,情绪信号:21,关心信号:21};
+  answers.forEach((a,i)=>{
+    if(a===null)return;
+    const sc=QUESTIONS[i].scores[a];total+=sc;
+    dimScores[QUESTIONS[i].dim]+=sc;
+  });
+  const score=Math.round(total/(15*7)*100);
+  const R=RESULTS.find(r=>score>=r.min);
+
+  document.getElementById('res-score').textContent=score;
+  document.getElementById('res-title').textContent=R.emoji+' '+R.title;
+  document.getElementById('res-desc').textContent=R.desc;
+  document.getElementById('res-resonance').textContent=R.resonance;
+
+  const dbEl=document.getElementById('dim-bars');dbEl.innerHTML='';
+  let topDim='',topPct=0;
+  DIMS.forEach(d=>{
+    const pct=Math.round(dimScores[d]/dimMax[d]*100);
+    if(pct>topPct){topPct=pct;topDim=d;}
+    const row=document.createElement('div');row.className='dim-row';
+    row.innerHTML=`<div class="dim-row-head"><span>${d}</span><span>${pct}%</span></div><div class="dim-bar-bg"><div class="dim-bar-fill" style="width:0%" data-pct="${pct}"></div></div>`;
+    dbEl.appendChild(row);
+  });
+
+  document.getElementById('highlight-text').innerHTML=`你在<span class="highlight-dim">「${topDim}」</span>维度得分最高（${topPct}%）。${DIM_THEORIES[topDim]}`;
+
+  let specialMsg='';
+  SPECIAL_MSGS.forEach(sm=>{if(answers[sm.q]===sm.a)specialMsg=sm.text;});
+  const sb=document.getElementById('special-box');
+  if(specialMsg){sb.style.display='block';document.getElementById('special-text').textContent=specialMsg;}
+  else{sb.style.display='none';}
+
+  document.getElementById('sc-body').textContent=R.shareText;
+  document.getElementById('share-card').classList.remove('visible');
+
+  show('screen-result');
+  setTimeout(()=>{
+    document.querySelectorAll('.dim-bar-fill').forEach(el=>{el.style.width=el.dataset.pct+'%';});
+  },200);
+}
+
+function toggleShareCard(){
+  document.getElementById('share-card').classList.toggle('visible');
+}
+
+function copyCard(){
+  const txt=document.getElementById('sc-body').textContent+'\n\nta也在偷偷喜欢你吗？来测一测 → crushtest.app';
+  navigator.clipboard.writeText(txt).then(()=>{
+    const b=document.querySelector('.btn-copy');
+    b.textContent='已复制 ✓';
+    setTimeout(()=>b.textContent='复制文字',2000);
+  });
+}
+
+function retry(){show('screen-landing');}
+
+makeStars();
+</script>
+</body>
+</html>
