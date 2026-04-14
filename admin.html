@@ -9,8 +9,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#f5f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;min-height:100vh;}
 
-/* LOGIN */
-#screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f4f0;}
+#screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh;}
 .login-box{background:white;border-radius:16px;padding:40px;width:100%;max-width:360px;box-shadow:0 2px 20px rgba(0,0,0,.08);}
 .login-title{font-size:20px;font-weight:600;margin-bottom:8px;}
 .login-sub{font-size:13px;color:#888;margin-bottom:28px;}
@@ -19,25 +18,25 @@ body{background:#f5f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .field-input:focus{border-color:#7a5abf;}
 .btn-login{width:100%;background:#7a5abf;border:none;color:white;font-size:14px;padding:13px;border-radius:8px;cursor:pointer;font-weight:500;transition:background .2s;}
 .btn-login:hover{background:#6a4aaf;}
+.btn-login:disabled{background:#bbb;cursor:default;}
 .login-error{font-size:12px;color:#e05050;margin-top:10px;min-height:18px;}
 
-/* ADMIN */
 #screen-admin{display:none;min-height:100vh;}
 .topbar{background:white;border-bottom:1px solid #eee;padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
-.topbar-title{font-size:15px;font-weight:600;color:#1a1a1a;}
+.topbar-title{font-size:15px;font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:16px;}
+.topbar-user{font-size:13px;color:#888;}
 .btn-logout{background:none;border:1px solid #e0e0e0;color:#666;font-size:13px;padding:7px 16px;border-radius:8px;cursor:pointer;transition:all .2s;}
 .btn-logout:hover{border-color:#999;color:#333;}
 .main{padding:32px;max-width:1000px;margin:0 auto;}
 
-/* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;}
 .stat-card{background:white;border-radius:12px;padding:20px 24px;border:1px solid #eee;}
 .stat-label{font-size:12px;color:#999;margin-bottom:8px;}
-.stat-num{font-size:28px;font-weight:600;color:#1a1a1a;}
+.stat-num{font-size:28px;font-weight:600;}
 
-/* GENERATE */
 .section{background:white;border-radius:12px;padding:24px;margin-bottom:24px;border:1px solid #eee;}
-.section-title{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.section-title{font-size:15px;font-weight:600;margin-bottom:16px;}
 .gen-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
 .gen-field{display:flex;flex-direction:column;gap:6px;}
 .gen-label{font-size:12px;color:#666;}
@@ -47,13 +46,21 @@ body{background:#f5f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .btn-gen{background:#7a5abf;border:none;color:white;font-size:14px;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:500;transition:background .2s;white-space:nowrap;}
 .btn-gen:hover{background:#6a4aaf;}
 .btn-gen:disabled{background:#ccc;cursor:default;}
-.gen-result{margin-top:16px;padding:14px;background:#f8f5ff;border-radius:8px;font-size:13px;color:#5a3a9f;display:none;line-height:1.8;border:1px solid #e8e0ff;}
+.gen-result{margin-top:16px;padding:16px;background:#f8f5ff;border-radius:8px;border:1px solid #e8e0ff;display:none;}
+.gen-result-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.gen-result-head strong{font-size:13px;color:#5a3a9f;}
+.btn-copy-all{background:white;border:1px solid #7a5abf;color:#7a5abf;font-size:13px;padding:7px 18px;border-radius:8px;cursor:pointer;transition:all .2s;}
+.btn-copy-all:hover{background:#7a5abf;color:white;}
+.new-codes-list{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;}
+.new-code-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:white;border:1px solid #e8e0ff;border-radius:8px;}
+.new-code-text{font-family:monospace;font-weight:600;color:#5a3a9f;letter-spacing:1px;font-size:14px;}
+.btn-copy-single{background:none;border:none;color:#9a7abf;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:background .2s;}
+.btn-copy-single:hover{background:#ede8ff;}
 
-/* TABLE */
-.table-wrap{overflow-x:auto;}
 .filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
 .filter-btn{background:none;border:1px solid #e0e0e0;color:#666;font-size:13px;padding:7px 16px;border-radius:20px;cursor:pointer;transition:all .2s;}
 .filter-btn.active{background:#7a5abf;border-color:#7a5abf;color:white;}
+.table-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:14px;}
 th{text-align:left;padding:10px 14px;font-size:11px;color:#999;font-weight:500;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid #eee;}
 td{padding:14px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:middle;}
@@ -62,51 +69,43 @@ tr:hover td{background:#faf9ff;}
 .code-badge{font-family:monospace;font-size:14px;font-weight:600;color:#5a3a9f;background:#f0ecff;padding:4px 10px;border-radius:6px;letter-spacing:1px;}
 .uses-bar-wrap{display:flex;align-items:center;gap:10px;}
 .uses-bar-bg{width:80px;height:6px;background:#eee;border-radius:3px;overflow:hidden;}
-.uses-bar-fill{height:100%;border-radius:3px;transition:width .3s;}
+.uses-bar-fill{height:100%;border-radius:3px;}
 .tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:10px;font-weight:500;}
 .tag-active{background:#e8f5e9;color:#2e7d32;}
 .tag-inactive{background:#fce4e4;color:#c62828;}
 .tag-full{background:#fff3e0;color:#e65100;}
 .btn-action{background:none;border:1px solid #e0e0e0;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .2s;color:#666;}
 .btn-action:hover{border-color:#7a5abf;color:#7a5abf;}
-.btn-disable{color:#c62828;}
-.btn-disable:hover{border-color:#c62828;color:#c62828;}
+.btn-disable:hover{border-color:#c62828 !important;color:#c62828 !important;}
 .empty{text-align:center;padding:48px;color:#bbb;font-size:14px;}
 .loading{text-align:center;padding:32px;color:#bbb;font-size:14px;}
-
-/* COPY NEW CODES */
-.new-codes-list{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;}
-.new-code-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#faf8ff;border:1px solid #e8e0ff;border-radius:8px;}
-.new-code-text{font-family:monospace;font-weight:600;color:#5a3a9f;letter-spacing:1px;}
-.btn-copy-single{background:none;border:none;color:#9a7abf;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:background .2s;}
-.btn-copy-single:hover{background:#ede8ff;}
-.btn-copy-all{background:white;border:1px solid #7a5abf;color:#7a5abf;font-size:13px;padding:8px 20px;border-radius:8px;cursor:pointer;transition:all .2s;margin-top:12px;}
-.btn-copy-all:hover{background:#7a5abf;color:white;}
 </style>
 </head>
 <body>
 
-<!-- 登录页 -->
 <div id="screen-login">
   <div class="login-box">
     <p class="login-title">管理后台</p>
     <p class="login-sub">暗恋测试 · 验证码管理</p>
-    <label class="field-label">管理员密码</label>
+    <label class="field-label">管理员邮箱</label>
+    <input class="field-input" id="email-input" type="email" placeholder="输入邮箱" />
+    <label class="field-label">密码</label>
     <input class="field-input" id="pwd-input" type="password" placeholder="输入密码" />
-    <button class="btn-login" onclick="doLogin()">登录</button>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">登录</button>
     <p class="login-error" id="login-error"></p>
   </div>
 </div>
 
-<!-- 管理页 -->
 <div id="screen-admin">
   <div class="topbar">
     <span class="topbar-title">验证码管理后台</span>
-    <button class="btn-logout" onclick="doLogout()">退出登录</button>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbar-user"></span>
+      <button class="btn-logout" onclick="doLogout()">退出登录</button>
+    </div>
   </div>
   <div class="main">
 
-    <!-- 统计 -->
     <div class="stats-row">
       <div class="stat-card">
         <p class="stat-label">验证码总数</p>
@@ -122,7 +121,6 @@ tr:hover td{background:#faf9ff;}
       </div>
     </div>
 
-    <!-- 生成验证码 -->
     <div class="section">
       <p class="section-title">生成验证码</p>
       <div class="gen-row">
@@ -141,15 +139,14 @@ tr:hover td{background:#faf9ff;}
         <button class="btn-gen" id="btn-gen" onclick="generateCodes()">立即生成</button>
       </div>
       <div class="gen-result" id="gen-result">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <strong>新生成的验证码：</strong>
+        <div class="gen-result-head">
+          <strong>新生成的验证码</strong>
           <button class="btn-copy-all" onclick="copyAllCodes()">复制全部</button>
         </div>
         <div class="new-codes-list" id="new-codes-list"></div>
       </div>
     </div>
 
-    <!-- 验证码列表 -->
     <div class="section">
       <p class="section-title">验证码列表</p>
       <div class="filter-row">
@@ -184,32 +181,54 @@ tr:hover td{background:#faf9ff;}
 <script>
 const SUPABASE_URL = 'https://liryprojsamyeclyiecy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_vPuZakTWMduqW30mBPAqtw_uB-6V9ok';
-const ADMIN_PASSWORD = 'crush2024admin';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let allCodes = [];
 let currentFilter = 'all';
 let newGeneratedCodes = [];
 
-function doLogin(){
+window.addEventListener('load', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if(session) enterAdmin(session.user.email);
+});
+
+async function doLogin() {
+  const email = document.getElementById('email-input').value.trim();
   const pwd = document.getElementById('pwd-input').value;
-  if(pwd === ADMIN_PASSWORD){
-    document.getElementById('screen-login').style.display = 'none';
-    document.getElementById('screen-admin').style.display = 'block';
-    loadCodes();
-  } else {
-    document.getElementById('login-error').textContent = '密码错误';
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('btn-login');
+  if(!email || !pwd){ errEl.textContent='请填写邮箱和密码'; return; }
+  btn.disabled = true; btn.textContent = '登录中...';
+  errEl.textContent = '';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  if(error){
+    errEl.textContent = '邮箱或密码错误，请重试';
+    btn.disabled = false; btn.textContent = '登录';
+    return;
   }
+  enterAdmin(data.user.email);
 }
+
 document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
-function doLogout(){
+function enterAdmin(email) {
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-admin').style.display = 'block';
+  document.getElementById('topbar-user').textContent = email;
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = '登录';
+  loadCodes();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
   document.getElementById('screen-login').style.display = 'flex';
   document.getElementById('screen-admin').style.display = 'none';
+  document.getElementById('email-input').value = '';
   document.getElementById('pwd-input').value = '';
 }
 
-async function loadCodes(){
+async function loadCodes() {
   const { data, error } = await sb.from('codes').select('*').order('created_at', { ascending: false });
   if(error){ console.error(error); return; }
   allCodes = data || [];
@@ -217,115 +236,95 @@ async function loadCodes(){
   renderTable();
 }
 
-function updateStats(){
+function updateStats() {
   document.getElementById('stat-total').textContent = allCodes.length;
   document.getElementById('stat-active').textContent = allCodes.filter(c => c.is_active && c.used_count < c.max_uses).length;
   document.getElementById('stat-uses').textContent = allCodes.reduce((s,c) => s + c.used_count, 0);
 }
 
-function setFilter(f, btn){
+function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderTable();
 }
 
-function renderTable(){
+function renderTable() {
   let codes = allCodes;
   if(currentFilter === 'active') codes = codes.filter(c => c.is_active && c.used_count < c.max_uses);
   else if(currentFilter === 'full') codes = codes.filter(c => c.used_count >= c.max_uses);
   else if(currentFilter === 'inactive') codes = codes.filter(c => !c.is_active);
-
   const tbody = document.getElementById('codes-tbody');
   if(codes.length === 0){ tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无数据</td></tr>'; return; }
-
   tbody.innerHTML = codes.map(c => {
     const pct = Math.round(c.used_count / c.max_uses * 100);
     const barColor = pct >= 100 ? '#e65100' : pct >= 60 ? '#f59e0b' : '#7a5abf';
     const isFull = c.used_count >= c.max_uses;
     const tag = !c.is_active
       ? '<span class="tag tag-inactive">已禁用</span>'
-      : isFull
-        ? '<span class="tag tag-full">已用完</span>'
-        : '<span class="tag tag-active">有效</span>';
-    const date = new Date(c.created_at).toLocaleDateString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      : isFull ? '<span class="tag tag-full">已用完</span>'
+      : '<span class="tag tag-active">有效</span>';
+    const date = new Date(c.created_at).toLocaleDateString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
     const actionBtn = c.is_active
       ? `<button class="btn-action btn-disable" onclick="toggleCode('${c.id}',false)">禁用</button>`
       : `<button class="btn-action" onclick="toggleCode('${c.id}',true)">启用</button>`;
     return `<tr>
       <td><span class="code-badge">${c.code}</span></td>
-      <td>
-        <div class="uses-bar-wrap">
-          <span>${c.used_count}</span>
-          <div class="uses-bar-bg"><div class="uses-bar-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
-        </div>
-      </td>
+      <td><div class="uses-bar-wrap"><span>${c.used_count}</span><div class="uses-bar-bg"><div class="uses-bar-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div></div></td>
       <td>${c.max_uses}</td>
       <td>${tag}</td>
-      <td style="color:#888;font-size:13px;">${c.note || '—'}</td>
+      <td style="color:#888;font-size:13px;">${c.note||'—'}</td>
       <td style="color:#aaa;font-size:12px;">${date}</td>
       <td>${actionBtn}</td>
     </tr>`;
   }).join('');
 }
 
-async function toggleCode(id, active){
+async function toggleCode(id, active) {
   await sb.from('codes').update({ is_active: active }).eq('id', id);
   await loadCodes();
 }
 
-function genCode(){
+function genCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = 'CRUSH-';
   for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
   return code;
 }
 
-async function generateCodes(){
+async function generateCodes() {
   const count = parseInt(document.getElementById('gen-count').value) || 5;
   const maxUses = parseInt(document.getElementById('gen-maxuses').value) || 5;
   const note = document.getElementById('gen-note').value.trim();
   const btn = document.getElementById('btn-gen');
   btn.disabled = true; btn.textContent = '生成中...';
-
-  const rows = [];
-  const codes = [];
+  const rows = [], codes = [];
   for(let i=0;i<count;i++){
-    let code;
-    do { code = genCode(); } while(codes.includes(code));
+    let code; do { code = genCode(); } while(codes.includes(code));
     codes.push(code);
-    rows.push({ code, max_uses: maxUses, used_count: 0, is_active: true, note: note || null });
+    rows.push({ code, max_uses: maxUses, used_count: 0, is_active: true, note: note||null });
   }
-
   const { error } = await sb.from('codes').insert(rows);
   btn.disabled = false; btn.textContent = '立即生成';
   if(error){ alert('生成失败：'+error.message); return; }
-
   newGeneratedCodes = codes;
-  const listEl = document.getElementById('new-codes-list');
-  listEl.innerHTML = codes.map(c => `
+  document.getElementById('new-codes-list').innerHTML = codes.map(c => `
     <div class="new-code-item">
       <span class="new-code-text">${c}</span>
       <button class="btn-copy-single" onclick="copySingle('${c}',this)">复制</button>
-    </div>
-  `).join('');
+    </div>`).join('');
   document.getElementById('gen-result').style.display = 'block';
   await loadCodes();
 }
 
-function copySingle(code, btn){
-  navigator.clipboard.writeText(code).then(()=>{
-    btn.textContent='已复制';
-    setTimeout(()=>btn.textContent='复制',1500);
-  });
+function copySingle(code, btn) {
+  navigator.clipboard.writeText(code).then(()=>{ btn.textContent='已复制'; setTimeout(()=>btn.textContent='复制',1500); });
 }
 
-function copyAllCodes(){
-  const text = newGeneratedCodes.join('\n');
-  navigator.clipboard.writeText(text).then(()=>{
+function copyAllCodes() {
+  navigator.clipboard.writeText(newGeneratedCodes.join('\n')).then(()=>{
     const btn = document.querySelector('.btn-copy-all');
-    btn.textContent='已复制全部 ✓';
-    setTimeout(()=>btn.textContent='复制全部',2000);
+    btn.textContent='已复制 ✓'; setTimeout(()=>btn.textContent='复制全部',2000);
   });
 }
 </script>
