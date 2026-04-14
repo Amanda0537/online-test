@@ -16,31 +16,16 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
 .screen{position:relative;z-index:1;display:none;flex-direction:column;align-items:center;padding:64px 24px 60px;min-height:100vh;}
 .screen.active{display:flex;}
 
-/* VERIFY */
-#screen-verify{justify-content:center;text-align:center;}
-.eyebrow{font-size:11px;letter-spacing:4px;color:#b49fd4;text-transform:uppercase;margin-bottom:28px;opacity:0;animation:fadeUp .6s .2s forwards;}
-.verify-title{font-family:'Noto Serif SC',serif;font-size:clamp(22px,5vw,32px);font-weight:300;color:#f0eaff;line-height:1.4;margin-bottom:12px;opacity:0;animation:fadeUp .7s .4s forwards;}
-.verify-sub{font-size:14px;color:#9080a8;margin-bottom:44px;opacity:0;animation:fadeUp .7s .6s forwards;}
-.verify-box{width:100%;max-width:360px;opacity:0;animation:fadeUp .7s .8s forwards;}
-.code-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid rgba(180,150,220,.3);border-radius:12px;padding:16px 20px;font-family:'Noto Sans SC',sans-serif;font-size:18px;color:#f0eaff;text-align:center;letter-spacing:4px;outline:none;transition:border-color .2s;margin-bottom:16px;}
-.code-input:focus{border-color:#7a5abf;}
-.code-input::placeholder{letter-spacing:2px;font-size:14px;color:#5a4a70;}
-.btn-verify{width:100%;background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:15px;padding:15px;border-radius:12px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s,opacity .2s;}
-.btn-verify:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(160,122,208,.4);}
-.btn-verify:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none;}
-.verify-error{margin-top:14px;font-size:13px;color:#e07070;min-height:20px;}
-.verify-hint{margin-top:20px;font-size:12px;color:#5a4a70;line-height:1.7;}
-
 /* LANDING */
 #screen-landing{justify-content:center;text-align:center;gap:0;}
-.landing-title{font-family:'Noto Serif SC',serif;font-size:clamp(28px,6vw,44px);font-weight:300;line-height:1.35;color:#f0eaff;margin-bottom:20px;opacity:0;animation:fadeUp .7s .2s forwards;}
+.eyebrow{font-size:11px;letter-spacing:4px;color:#b49fd4;text-transform:uppercase;margin-bottom:28px;opacity:0;animation:fadeUp .6s .2s forwards;}
+.landing-title{font-family:'Noto Serif SC',serif;font-size:clamp(28px,6vw,44px);font-weight:300;line-height:1.35;color:#f0eaff;margin-bottom:20px;opacity:0;animation:fadeUp .7s .4s forwards;}
 .landing-title em{font-style:normal;color:#c4a8f5;}
-.landing-sub{font-size:15px;color:#9080a8;line-height:1.8;max-width:300px;margin-bottom:44px;opacity:0;animation:fadeUp .7s .4s forwards;}
-.hook-question{font-family:'Noto Serif SC',serif;font-size:15px;color:#c4a8f5;border-left:2px solid #7a5abf;padding-left:16px;text-align:left;max-width:280px;line-height:1.8;margin-bottom:48px;opacity:0;animation:fadeUp .7s .6s forwards;}
-.btn-start{background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:15px;padding:15px 44px;border-radius:40px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s;opacity:0;animation:fadeUp .7s .8s forwards;}
+.landing-sub{font-size:15px;color:#9080a8;line-height:1.8;max-width:300px;margin-bottom:44px;opacity:0;animation:fadeUp .7s .6s forwards;}
+.hook-question{font-family:'Noto Serif SC',serif;font-size:15px;color:#c4a8f5;border-left:2px solid #7a5abf;padding-left:16px;text-align:left;max-width:280px;line-height:1.8;margin-bottom:48px;opacity:0;animation:fadeUp .7s .8s forwards;}
+.btn-start{background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:15px;padding:15px 44px;border-radius:40px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s;opacity:0;animation:fadeUp .7s 1s forwards;}
 .btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(160,122,208,.4);}
-.uses-left{margin-top:18px;font-size:12px;color:#7a5abf;opacity:0;animation:fadeUp .6s 1s forwards;}
-
+.trust-line{margin-top:18px;font-size:11px;color:#5a4a70;opacity:0;animation:fadeUp .6s 1.2s forwards;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 
 /* QUIZ */
@@ -62,6 +47,23 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
 .btn-next{background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:13px;padding:10px 26px;border-radius:24px;cursor:pointer;transition:transform .2s,opacity .2s;opacity:.4;pointer-events:none;}
 .btn-next.enabled{opacity:1;pointer-events:all;}
 .btn-next.enabled:hover{transform:translateY(-1px);}
+
+/* VERIFY OVERLAY */
+#screen-verify{justify-content:center;text-align:center;background:#0d0a1a;}
+.verify-icon{font-size:40px;margin-bottom:20px;}
+.verify-title{font-family:'Noto Serif SC',serif;font-size:clamp(20px,5vw,28px);font-weight:300;color:#f0eaff;line-height:1.4;margin-bottom:10px;}
+.verify-sub{font-size:14px;color:#9080a8;margin-bottom:12px;line-height:1.7;}
+.verify-hint-small{font-size:12px;color:#5a4070;margin-bottom:36px;line-height:1.6;}
+.verify-box{width:100%;max-width:360px;}
+.code-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid rgba(180,150,220,.3);border-radius:12px;padding:16px 20px;font-family:'Noto Sans SC',sans-serif;font-size:18px;color:#f0eaff;text-align:center;letter-spacing:4px;outline:none;transition:border-color .2s;margin-bottom:16px;}
+.code-input:focus{border-color:#7a5abf;}
+.code-input::placeholder{letter-spacing:2px;font-size:14px;color:#5a4a70;}
+.btn-verify{width:100%;background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:15px;padding:15px;border-radius:12px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s,opacity .2s;}
+.btn-verify:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(160,122,208,.4);}
+.btn-verify:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none;}
+.verify-error{margin-top:14px;font-size:13px;color:#e07070;min-height:20px;}
+.verify-purchase{margin-top:20px;font-size:12px;color:#5a4a70;line-height:1.8;}
+.verify-purchase a{color:#9a7abf;text-decoration:none;}
 
 /* RESULT */
 #screen-result{justify-content:flex-start;text-align:center;max-width:520px;margin:0 auto;width:100%;gap:0;}
@@ -98,36 +100,23 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
 .sc-link{font-size:12px;color:#7060a0;border-top:0.5px solid rgba(180,150,220,.15);padding-top:14px;}
 .btn-copy{background:rgba(122,90,191,.2);border:0.5px solid rgba(180,150,220,.3);color:#c4a8f5;font-family:'Noto Sans SC',sans-serif;font-size:12px;padding:9px 22px;border-radius:20px;cursor:pointer;transition:all .2s;margin-top:14px;}
 .btn-copy:hover{background:rgba(122,90,191,.35);}
+.uses-remaining{font-size:12px;color:#5a4a70;margin-bottom:12px;}
 .btn-retry{background:none;border:0.5px solid rgba(180,150,220,.25);color:#7060a0;font-family:'Noto Sans SC',sans-serif;font-size:13px;padding:12px 32px;border-radius:40px;cursor:pointer;transition:all .2s;letter-spacing:1px;width:100%;}
 .btn-retry:hover{border-color:#7a5abf;color:#c4a8f5;}
-.uses-remaining{font-size:12px;color:#5a4a70;margin-top:16px;}
 </style>
 </head>
 <body>
 <div id="app">
 <div class="stars" id="stars"></div>
 
-<!-- 验证码页 -->
-<div class="screen active" id="screen-verify">
-  <p class="eyebrow">暗恋信号分析</p>
-  <h1 class="verify-title">输入验证码<br>开始测试</h1>
-  <p class="verify-sub">每个验证码最多可使用 5 次</p>
-  <div class="verify-box">
-    <input class="code-input" id="code-input" type="text" placeholder="输入验证码" maxlength="20" autocomplete="off" />
-    <button class="btn-verify" id="btn-verify" onclick="verifyCode()">验证并开始 →</button>
-    <p class="verify-error" id="verify-error"></p>
-    <p class="verify-hint">购买验证码请联系站长<br>一个验证码可供 5 次测试使用</p>
-  </div>
-</div>
-
 <!-- 开始页 -->
-<div class="screen" id="screen-landing">
+<div class="screen active" id="screen-landing">
   <p class="eyebrow">暗恋信号分析</p>
   <h1 class="landing-title">他/她看你的眼神<br><em>和看别人不一样</em></h1>
   <p class="landing-sub">还是你想多了？<br>15个行为信号，帮你分析清楚</p>
   <p class="hook-question">最近有没有一瞬间，<br>觉得他/她好像也在看你？</p>
   <button class="btn-start" onclick="startQuiz()">我想知道答案 →</button>
-  <p class="uses-left" id="uses-left"></p>
+  <p class="trust-line">已有 23,841 人测试 · 匿名 · 约 2 分钟完成</p>
 </div>
 
 <!-- 答题页 -->
@@ -145,6 +134,20 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
   <div class="quiz-nav">
     <button class="btn-nav" id="btn-prev" onclick="prevQ()">← 上一题</button>
     <button class="btn-next" id="btn-next" onclick="nextQ()">下一题 →</button>
+  </div>
+</div>
+
+<!-- 验证码页（答完题后出现）-->
+<div class="screen" id="screen-verify">
+  <div class="verify-icon">🔐</div>
+  <h2 class="verify-title">你的分析已经准备好了</h2>
+  <p class="verify-sub">输入验证码，立刻查看结果</p>
+  <p class="verify-hint-small">验证码可在购买后获得 · 每码最多可用 5 次</p>
+  <div class="verify-box">
+    <input class="code-input" id="code-input" type="text" placeholder="输入验证码" maxlength="20" autocomplete="off" />
+    <button class="btn-verify" id="btn-verify" onclick="verifyCode()">查看我的结果 →</button>
+    <p class="verify-error" id="verify-error"></p>
+    <p class="verify-purchase">没有验证码？<a href="#">点击购买</a> · 联系站长获取</p>
   </div>
 </div>
 
@@ -178,7 +181,7 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
     <div class="share-card" id="share-card">
       <p class="sc-eyebrow">暗恋信号分析</p>
       <p class="sc-body" id="sc-body"></p>
-      <p class="sc-link">ta也在偷偷喜欢你吗？来测一测 →<br>online-test-virid-gamma.vercel.app</p>
+      <p class="sc-link">ta也在偷偷喜欢你吗？来测一测 →<br>musicallworld.com</p>
       <button class="btn-copy" onclick="copyCard()">复制文字</button>
     </div>
     <p class="uses-remaining" id="uses-remaining"></p>
@@ -194,6 +197,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentCode = null;
 let currentCodeData = null;
+let pendingAnswers = null;
 
 const QUESTIONS=[
   {dim:'注意力信号',q:'在一群人聚会时，你有没有感觉他/她的眼神经常落在你身上？',opts:['有，而且经常和我四目相对，然后他/她会移开视线','偶尔有，但不确定是不是我多想','没有特别注意，感觉和看别人差不多','反而感觉他/她刻意不看我'],scores:[7,5,3,6],special:3},
@@ -234,51 +238,13 @@ const SPECIAL_MSGS=[
 
 let cur=0, answers=Array(15).fill(null);
 
-// 验证码逻辑
-async function verifyCode() {
-  const input = document.getElementById('code-input').value.trim().toUpperCase();
-  const errEl = document.getElementById('verify-error');
-  const btn = document.getElementById('btn-verify');
-  if(!input){ errEl.textContent='请输入验证码'; return; }
-  btn.disabled = true;
-  btn.textContent = '验证中...';
-  errEl.textContent = '';
-  try {
-    const { data, error } = await sb.from('codes').select('*').eq('code', input).single();
-    if(error || !data){ errEl.textContent='验证码不存在，请检查后重试'; btn.disabled=false; btn.textContent='验证并开始 →'; return; }
-    if(!data.is_active){ errEl.textContent='该验证码已被禁用'; btn.disabled=false; btn.textContent='验证并开始 →'; return; }
-    if(data.used_count >= data.max_uses){ errEl.textContent='该验证码已使用 '+data.max_uses+' 次，已达上限'; btn.disabled=false; btn.textContent='验证并开始 →'; return; }
-    currentCode = input;
-    currentCodeData = data;
-    const remaining = data.max_uses - data.used_count;
-    document.getElementById('uses-left').textContent = '验证码剩余可用次数：' + remaining + ' 次';
-    show('screen-landing');
-  } catch(e) {
-    errEl.textContent='网络错误，请重试';
-    btn.disabled=false;
-    btn.textContent='验证并开始 →';
-  }
-}
-
-// 监听回车
-document.getElementById('code-input').addEventListener('keydown', e => { if(e.key==='Enter') verifyCode(); });
-
-async function startQuiz() {
-  if(!currentCode) { show('screen-verify'); return; }
-  // 使用次数+1
-  try {
-    await sb.from('codes').update({ used_count: currentCodeData.used_count + 1 }).eq('code', currentCode);
-    currentCodeData.used_count += 1;
-  } catch(e) { console.error(e); }
-  cur=0; answers=Array(15).fill(null);
-  show('screen-quiz'); renderQ();
-}
-
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 }
+
+function startQuiz(){ cur=0; answers=Array(15).fill(null); show('screen-quiz'); renderQ(); }
 
 function renderQ(){
   const Q=QUESTIONS[cur];
@@ -296,7 +262,7 @@ function renderQ(){
   document.getElementById('btn-prev').disabled=cur===0;
   const nb=document.getElementById('btn-next');
   if(answers[cur]!==null) nb.classList.add('enabled'); else nb.classList.remove('enabled');
-  nb.textContent=cur===14?'查看结果 ✨':'下一题 →';
+  nb.textContent=cur===14?'查看结果 →':'下一题 →';
 }
 
 function selectOpt(i){
@@ -304,14 +270,64 @@ function selectOpt(i){
   document.querySelectorAll('.opt').forEach((b,idx)=>b.classList.toggle('selected',idx===i));
   document.getElementById('btn-next').classList.add('enabled');
 }
-function nextQ(){ if(answers[cur]===null) return; if(cur===14){showResult();return;} cur++; renderQ(); }
+
+function nextQ(){
+  if(answers[cur]===null) return;
+  if(cur===14){
+    // 答完了，保存答案，跳到验证码页
+    pendingAnswers = [...answers];
+    document.getElementById('code-input').value='';
+    document.getElementById('verify-error').textContent='';
+    // 如果已有有效验证码且还有次数，直接显示结果
+    if(currentCodeData && currentCodeData.is_active && currentCodeData.used_count < currentCodeData.max_uses){
+      consumeAndShow();
+    } else {
+      show('screen-verify');
+    }
+    return;
+  }
+  cur++; renderQ();
+}
 function prevQ(){ if(cur>0){cur--;renderQ();} }
 
-function showResult(){
+// 验证码验证
+async function verifyCode(){
+  const input = document.getElementById('code-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('verify-error');
+  const btn = document.getElementById('btn-verify');
+  if(!input){ errEl.textContent='请输入验证码'; return; }
+  btn.disabled=true; btn.textContent='验证中...';
+  errEl.textContent='';
+  try {
+    const { data, error } = await sb.from('codes').select('*').eq('code',input).single();
+    if(error||!data){ errEl.textContent='验证码不存在，请检查后重试'; btn.disabled=false; btn.textContent='查看我的结果 →'; return; }
+    if(!data.is_active){ errEl.textContent='该验证码已被禁用'; btn.disabled=false; btn.textContent='查看我的结果 →'; return; }
+    if(data.used_count>=data.max_uses){ errEl.textContent='该验证码已达使用上限（'+data.max_uses+'次）'; btn.disabled=false; btn.textContent='查看我的结果 →'; return; }
+    currentCode=input; currentCodeData=data;
+    btn.disabled=false; btn.textContent='查看我的结果 →';
+    await consumeAndShow();
+  } catch(e){
+    errEl.textContent='网络错误，请重试';
+    btn.disabled=false; btn.textContent='查看我的结果 →';
+  }
+}
+
+async function consumeAndShow(){
+  // 使用次数+1
+  try {
+    await sb.from('codes').update({ used_count: currentCodeData.used_count+1 }).eq('code', currentCode);
+    currentCodeData.used_count+=1;
+  } catch(e){ console.error(e); }
+  showResult(pendingAnswers);
+}
+
+document.getElementById('code-input').addEventListener('keydown', e=>{ if(e.key==='Enter') verifyCode(); });
+
+function showResult(ans){
   let total=0;
   const dimScores={注意力信号:0,沟通信号:0,肢体信号:0,情绪信号:0,关心信号:0};
   const dimMax={注意力信号:21,沟通信号:21,肢体信号:21,情绪信号:21,关心信号:21};
-  answers.forEach((a,i)=>{ if(a===null)return; const sc=QUESTIONS[i].scores[a]; total+=sc; dimScores[QUESTIONS[i].dim]+=sc; });
+  ans.forEach((a,i)=>{ if(a===null)return; const sc=QUESTIONS[i].scores[a]; total+=sc; dimScores[QUESTIONS[i].dim]+=sc; });
   const score=Math.round(total/(15*7)*100);
   const R=RESULTS.find(r=>score>=r.min);
   document.getElementById('res-score').textContent=score;
@@ -329,29 +345,29 @@ function showResult(){
   });
   document.getElementById('highlight-text').innerHTML=`你在<span class="highlight-dim">「${topDim}」</span>维度得分最高（${topPct}%）。${DIM_THEORIES[topDim]}`;
   let specialMsg='';
-  SPECIAL_MSGS.forEach(sm=>{ if(answers[sm.q]===sm.a) specialMsg=sm.text; });
+  SPECIAL_MSGS.forEach(sm=>{ if(ans[sm.q]===sm.a) specialMsg=sm.text; });
   const sb2=document.getElementById('special-box');
   if(specialMsg){sb2.style.display='block';document.getElementById('special-text').textContent=specialMsg;}
   else{sb2.style.display='none';}
   document.getElementById('sc-body').textContent=R.shareText;
   document.getElementById('share-card').classList.remove('visible');
-  const remaining = currentCodeData ? currentCodeData.max_uses - currentCodeData.used_count : 0;
-  document.getElementById('uses-remaining').textContent = remaining > 0 ? `验证码剩余 ${remaining} 次可用` : '验证码次数已用完';
+  const remaining=currentCodeData ? currentCodeData.max_uses-currentCodeData.used_count : 0;
+  document.getElementById('uses-remaining').textContent=remaining>0?`验证码剩余 ${remaining} 次可用`:'验证码次数已用完';
   show('screen-result');
   setTimeout(()=>{ document.querySelectorAll('.dim-bar-fill').forEach(el=>{ el.style.width=el.dataset.pct+'%'; }); },200);
 }
 
 function retryTest(){
-  if(!currentCodeData) { show('screen-verify'); return; }
-  const remaining = currentCodeData.max_uses - currentCodeData.used_count;
-  if(remaining <= 0){ alert('验证码次数已用完，请购买新的验证码'); return; }
-  show('screen-landing');
-  document.getElementById('uses-left').textContent = '验证码剩余可用次数：' + remaining + ' 次';
+  if(currentCodeData){
+    const remaining=currentCodeData.max_uses-currentCodeData.used_count;
+    if(remaining<=0){ alert('验证码次数已用完，请购买新的验证码'); return; }
+  }
+  startQuiz();
 }
 
 function toggleShareCard(){ document.getElementById('share-card').classList.toggle('visible'); }
 function copyCard(){
-  const txt=document.getElementById('sc-body').textContent+'\n\nta也在偷偷喜欢你吗？来测一测 → online-test-virid-gamma.vercel.app';
+  const txt=document.getElementById('sc-body').textContent+'\n\nta也在偷偷喜欢你吗？来测一测 → musicallworld.com';
   navigator.clipboard.writeText(txt).then(()=>{
     const b=document.querySelector('.btn-copy'); b.textContent='已复制 ✓';
     setTimeout(()=>b.textContent='复制文字',2000);
