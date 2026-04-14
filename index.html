@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>暗恋信号分析</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-height:100vh;}
@@ -15,16 +16,31 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
 .screen{position:relative;z-index:1;display:none;flex-direction:column;align-items:center;padding:64px 24px 60px;min-height:100vh;}
 .screen.active{display:flex;}
 
+/* VERIFY */
+#screen-verify{justify-content:center;text-align:center;}
+.eyebrow{font-size:11px;letter-spacing:4px;color:#b49fd4;text-transform:uppercase;margin-bottom:28px;opacity:0;animation:fadeUp .6s .2s forwards;}
+.verify-title{font-family:'Noto Serif SC',serif;font-size:clamp(22px,5vw,32px);font-weight:300;color:#f0eaff;line-height:1.4;margin-bottom:12px;opacity:0;animation:fadeUp .7s .4s forwards;}
+.verify-sub{font-size:14px;color:#9080a8;margin-bottom:44px;opacity:0;animation:fadeUp .7s .6s forwards;}
+.verify-box{width:100%;max-width:360px;opacity:0;animation:fadeUp .7s .8s forwards;}
+.code-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid rgba(180,150,220,.3);border-radius:12px;padding:16px 20px;font-family:'Noto Sans SC',sans-serif;font-size:18px;color:#f0eaff;text-align:center;letter-spacing:4px;outline:none;transition:border-color .2s;margin-bottom:16px;}
+.code-input:focus{border-color:#7a5abf;}
+.code-input::placeholder{letter-spacing:2px;font-size:14px;color:#5a4a70;}
+.btn-verify{width:100%;background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:15px;padding:15px;border-radius:12px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s,opacity .2s;}
+.btn-verify:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(160,122,208,.4);}
+.btn-verify:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none;}
+.verify-error{margin-top:14px;font-size:13px;color:#e07070;min-height:20px;}
+.verify-hint{margin-top:20px;font-size:12px;color:#5a4a70;line-height:1.7;}
+
 /* LANDING */
 #screen-landing{justify-content:center;text-align:center;gap:0;}
-.eyebrow{font-size:11px;letter-spacing:4px;color:#b49fd4;text-transform:uppercase;margin-bottom:28px;opacity:0;animation:fadeUp .6s .2s forwards;}
-.landing-title{font-family:'Noto Serif SC',serif;font-size:clamp(28px,6vw,44px);font-weight:300;line-height:1.35;color:#f0eaff;margin-bottom:20px;opacity:0;animation:fadeUp .7s .4s forwards;}
+.landing-title{font-family:'Noto Serif SC',serif;font-size:clamp(28px,6vw,44px);font-weight:300;line-height:1.35;color:#f0eaff;margin-bottom:20px;opacity:0;animation:fadeUp .7s .2s forwards;}
 .landing-title em{font-style:normal;color:#c4a8f5;}
-.landing-sub{font-size:15px;color:#9080a8;line-height:1.8;max-width:300px;margin-bottom:44px;opacity:0;animation:fadeUp .7s .6s forwards;}
-.hook-question{font-family:'Noto Serif SC',serif;font-size:15px;color:#c4a8f5;border-left:2px solid #7a5abf;padding-left:16px;text-align:left;max-width:280px;line-height:1.8;margin-bottom:48px;opacity:0;animation:fadeUp .7s .8s forwards;}
-.btn-start{background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:15px;padding:15px 44px;border-radius:40px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s;opacity:0;animation:fadeUp .7s 1s forwards;}
+.landing-sub{font-size:15px;color:#9080a8;line-height:1.8;max-width:300px;margin-bottom:44px;opacity:0;animation:fadeUp .7s .4s forwards;}
+.hook-question{font-family:'Noto Serif SC',serif;font-size:15px;color:#c4a8f5;border-left:2px solid #7a5abf;padding-left:16px;text-align:left;max-width:280px;line-height:1.8;margin-bottom:48px;opacity:0;animation:fadeUp .7s .6s forwards;}
+.btn-start{background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:15px;padding:15px 44px;border-radius:40px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s;opacity:0;animation:fadeUp .7s .8s forwards;}
 .btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(160,122,208,.4);}
-.trust-line{margin-top:18px;font-size:11px;color:#5a4a70;opacity:0;animation:fadeUp .6s 1.2s forwards;}
+.uses-left{margin-top:18px;font-size:12px;color:#7a5abf;opacity:0;animation:fadeUp .6s 1s forwards;}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 
 /* QUIZ */
@@ -57,25 +73,20 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
 .score-max{font-size:11px;color:#6050a0;}
 .result-title{font-family:'Noto Serif SC',serif;font-size:clamp(19px,5vw,26px);font-weight:300;color:#f0eaff;margin-bottom:10px;line-height:1.4;}
 .result-desc{font-size:14px;color:#9080a8;line-height:1.9;max-width:340px;margin:0 auto 28px;}
-
 .resonance-box{background:rgba(122,90,191,.1);border:0.5px solid rgba(196,168,245,.2);border-radius:16px;padding:22px 24px;text-align:left;margin-bottom:28px;}
 .resonance-text{font-family:'Noto Serif SC',serif;font-size:15px;color:#d4c4f0;line-height:1.9;font-weight:300;}
-
 .dim-section-label{font-size:10px;letter-spacing:3px;color:#7a5abf;text-transform:uppercase;margin-bottom:18px;text-align:left;}
 .dim-bars{width:100%;display:flex;flex-direction:column;gap:16px;margin-bottom:8px;text-align:left;}
 .dim-row-head{display:flex;justify-content:space-between;font-size:12px;color:#7060a0;margin-bottom:7px;}
 .dim-bar-bg{height:3px;background:#1e1530;border-radius:3px;}
 .dim-bar-fill{height:100%;background:linear-gradient(90deg,#7a5abf,#c4a8f5);border-radius:3px;transition:width 1.2s ease;}
-
 .highlight-box{background:rgba(196,168,245,.06);border-left:2px solid #7a5abf;border-radius:0 12px 12px 0;padding:18px 20px;text-align:left;margin-bottom:24px;}
 .highlight-label{font-size:10px;letter-spacing:3px;color:#7a5abf;text-transform:uppercase;margin-bottom:10px;}
 .highlight-text{font-size:13px;color:#b8a8d8;line-height:1.85;}
 .highlight-dim{color:#c4a8f5;font-weight:500;}
-
 .special-box{background:rgba(255,200,100,.04);border:0.5px solid rgba(255,200,100,.15);border-radius:12px;padding:18px 20px;text-align:left;margin-bottom:24px;display:none;}
 .special-label{font-size:10px;letter-spacing:3px;color:#d4a820;text-transform:uppercase;margin-bottom:10px;}
 .special-text{font-size:13px;color:#c8a860;line-height:1.85;}
-
 .share-section{width:100%;margin-bottom:16px;}
 .share-title{font-size:12px;color:#6050a0;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
 .btn-send{width:100%;background:linear-gradient(135deg,#7a5abf,#a07ad0);border:none;color:white;font-family:'Noto Sans SC',sans-serif;font-size:14px;padding:15px;border-radius:12px;cursor:pointer;letter-spacing:1px;transition:transform .2s,box-shadow .2s;margin-bottom:12px;}
@@ -89,21 +100,37 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
 .btn-copy:hover{background:rgba(122,90,191,.35);}
 .btn-retry{background:none;border:0.5px solid rgba(180,150,220,.25);color:#7060a0;font-family:'Noto Sans SC',sans-serif;font-size:13px;padding:12px 32px;border-radius:40px;cursor:pointer;transition:all .2s;letter-spacing:1px;width:100%;}
 .btn-retry:hover{border-color:#7a5abf;color:#c4a8f5;}
+.uses-remaining{font-size:12px;color:#5a4a70;margin-top:16px;}
 </style>
 </head>
 <body>
 <div id="app">
 <div class="stars" id="stars"></div>
 
-<div class="screen active" id="screen-landing">
+<!-- 验证码页 -->
+<div class="screen active" id="screen-verify">
+  <p class="eyebrow">暗恋信号分析</p>
+  <h1 class="verify-title">输入验证码<br>开始测试</h1>
+  <p class="verify-sub">每个验证码最多可使用 5 次</p>
+  <div class="verify-box">
+    <input class="code-input" id="code-input" type="text" placeholder="输入验证码" maxlength="20" autocomplete="off" />
+    <button class="btn-verify" id="btn-verify" onclick="verifyCode()">验证并开始 →</button>
+    <p class="verify-error" id="verify-error"></p>
+    <p class="verify-hint">购买验证码请联系站长<br>一个验证码可供 5 次测试使用</p>
+  </div>
+</div>
+
+<!-- 开始页 -->
+<div class="screen" id="screen-landing">
   <p class="eyebrow">暗恋信号分析</p>
   <h1 class="landing-title">他/她看你的眼神<br><em>和看别人不一样</em></h1>
   <p class="landing-sub">还是你想多了？<br>15个行为信号，帮你分析清楚</p>
   <p class="hook-question">最近有没有一瞬间，<br>觉得他/她好像也在看你？</p>
   <button class="btn-start" onclick="startQuiz()">我想知道答案 →</button>
-  <p class="trust-line">已有 23,841 人测试 · 匿名 · 约 2 分钟完成</p>
+  <p class="uses-left" id="uses-left"></p>
 </div>
 
+<!-- 答题页 -->
 <div class="screen" id="screen-quiz">
   <div class="progress-wrap">
     <div class="progress-info">
@@ -121,6 +148,7 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
   </div>
 </div>
 
+<!-- 结果页 -->
 <div class="screen" id="screen-result">
   <p class="result-eyebrow">分析结果</p>
   <div class="score-circle">
@@ -129,41 +157,44 @@ body{background:#0d0a1a;font-family:'Noto Sans SC',sans-serif;color:#e8e0f0;min-
   </div>
   <h2 class="result-title" id="res-title"></h2>
   <p class="result-desc" id="res-desc"></p>
-
   <div class="resonance-box res-section">
     <p class="resonance-text" id="res-resonance"></p>
   </div>
-
   <div class="res-section" style="width:100%;text-align:left;">
     <p class="dim-section-label">五维度分析</p>
     <div class="dim-bars" id="dim-bars"></div>
   </div>
-
   <div class="highlight-box res-section">
     <p class="highlight-label">最强信号解读</p>
     <p class="highlight-text" id="highlight-text"></p>
   </div>
-
   <div class="special-box res-section" id="special-box">
     <p class="special-label">⚡ 特殊信号提示</p>
     <p class="special-text" id="special-text"></p>
   </div>
-
   <div class="share-section">
     <p class="share-title">发给他/她看看？</p>
     <button class="btn-send" onclick="toggleShareCard()">生成一张可以发给他/她的卡片 ✉</button>
     <div class="share-card" id="share-card">
       <p class="sc-eyebrow">暗恋信号分析</p>
       <p class="sc-body" id="sc-body"></p>
-      <p class="sc-link">ta也在偷偷喜欢你吗？来测一测 →<br>crushtest.app</p>
+      <p class="sc-link">ta也在偷偷喜欢你吗？来测一测 →<br>online-test-virid-gamma.vercel.app</p>
       <button class="btn-copy" onclick="copyCard()">复制文字</button>
     </div>
-    <button class="btn-retry" onclick="retry()">重新测试</button>
+    <p class="uses-remaining" id="uses-remaining"></p>
+    <button class="btn-retry" onclick="retryTest()">再测一次</button>
   </div>
 </div>
 </div>
 
 <script>
+const SUPABASE_URL = 'https://liryprojsamyeclyiecy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_vPuZakTWMduqW30mBPAqtw_uB-6V9ok';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentCode = null;
+let currentCodeData = null;
+
 const QUESTIONS=[
   {dim:'注意力信号',q:'在一群人聚会时，你有没有感觉他/她的眼神经常落在你身上？',opts:['有，而且经常和我四目相对，然后他/她会移开视线','偶尔有，但不确定是不是我多想','没有特别注意，感觉和看别人差不多','反而感觉他/她刻意不看我'],scores:[7,5,3,6],special:3},
   {dim:'注意力信号',q:'你换了发型、新衣服，或者有什么变化，他/她的反应是？',opts:['第一个注意到，还会专门说','注意到了，但只是随口一提','好像没注意，或者很久之后才提','从来不会评论我的外表变化'],scores:[7,5,3,1]},
@@ -190,37 +221,57 @@ const DIM_THEORIES={
   '情绪信号':'在喜欢的人面前，情绪会不由自主地变得更丰富。那种"只有在你面前才不一样"的状态，很少是普通朋友能触发的。',
   '关心信号':'记住你的日期、在你受委屈时站出来——这种主动保护的本能，往往只会给真正在乎的人。',
 };
-
 const RESULTS=[
-  {min:85,emoji:'💘',title:'他/她很可能也在偷偷喜欢你',desc:'信号已经相当明显了。这种程度的关注和在意，很少只是普通朋友之间的相处。',
-   resonance:'你早就感觉到了，对吗？只是需要有人告诉你——你没有想多。那些细节，你一个人反复回想过很多次了吧。',
-   shareText:'我做了一个暗恋信号测试，结果说他/她很可能也在偷偷喜欢我……\n\n你也来测测，看看你暗恋的人有没有在偷偷喜欢你？'},
-  {min:65,emoji:'🌸',title:'有明显的好感，正在悄悄观望',desc:'他/她对你的态度和对别人明显不同。可能因为某些原因还没有表达，但那份在意是真实存在的。',
-   resonance:'你们之间有些东西说不清楚，但又实实在在地存在着。也许他/她只是在等一个更合适的时机，或者等你先迈出那一步。',
-   shareText:'我做了一个暗恋信号测试，结果说他/她对我有明显好感，正在悄悄观望……\n\n你也来测测，看看你暗恋的人是什么感觉？'},
-  {min:40,emoji:'🌀',title:'信号时强时弱，有些难以捉摸',desc:'你们之间有一些暧昧的信号，但也有让你困惑的时候。可能是性格内敛，也可能还在犹豫中。',
-   resonance:'暗恋最难熬的，不是喜欢，是不确定。你现在大概就是这种感觉——有时候觉得是，有时候又开始怀疑。',
-   shareText:'我做了一个暗恋信号测试，结果说信号时强时弱，有点捉摸不透……\n\n你也来测测你的暗恋对象？'},
-  {min:0,emoji:'🌱',title:'目前信号较弱，但故事才刚开始',desc:'目前的行为信号不算强烈，但暗恋的故事很少在一开始就写在脸上。',
-   resonance:'信号弱，但你还是认认真真答完了15道题。光这一点，就说明你很在意。有些喜欢，是在相处中慢慢生长的。',
-   shareText:'我做了一个暗恋信号测试……结果嘛，先不说，你也来测测你的暗恋对象吧？'},
+  {min:85,emoji:'💘',title:'他/她很可能也在偷偷喜欢你',desc:'信号已经相当明显了。这种程度的关注和在意，很少只是普通朋友之间的相处。',resonance:'你早就感觉到了，对吗？只是需要有人告诉你——你没有想多。那些细节，你一个人反复回想过很多次了吧。',shareText:'我做了一个暗恋信号测试，结果说他/她很可能也在偷偷喜欢我……\n\n你也来测测，看看你暗恋的人有没有在偷偷喜欢你？'},
+  {min:65,emoji:'🌸',title:'有明显的好感，正在悄悄观望',desc:'他/她对你的态度和对别人明显不同。可能因为某些原因还没有表达，但那份在意是真实存在的。',resonance:'你们之间有些东西说不清楚，但又实实在在地存在着。也许他/她只是在等一个更合适的时机，或者等你先迈出那一步。',shareText:'我做了一个暗恋信号测试，结果说他/她对我有明显好感，正在悄悄观望……\n\n你也来测测，看看你暗恋的人是什么感觉？'},
+  {min:40,emoji:'🌀',title:'信号时强时弱，有些难以捉摸',desc:'你们之间有一些暧昧的信号，但也有让你困惑的时候。可能是性格内敛，也可能还在犹豫中。',resonance:'暗恋最难熬的，不是喜欢，是不确定。你现在大概就是这种感觉——有时候觉得是，有时候又开始怀疑。',shareText:'我做了一个暗恋信号测试，结果说信号时强时弱，有点捉摸不透……\n\n你也来测测你的暗恋对象？'},
+  {min:0,emoji:'🌱',title:'目前信号较弱，但故事才刚开始',desc:'目前的行为信号不算强烈，但暗恋的故事很少在一开始就写在脸上。',resonance:'信号弱，但你还是认认真真答完了15道题。光这一点，就说明你很在意。有些喜欢，是在相处中慢慢生长的。',shareText:'我做了一个暗恋信号测试……结果嘛，先不说，你也来测测你的暗恋对象吧？'},
 ];
-
 const SPECIAL_MSGS=[
   {q:0,a:3,text:'你提到他/她在你出现时刻意不看你——这在心理学上被称为「回避性注意」，有时候反而是喜欢的表现。越在意，越不敢直视。'},
   {q:9,a:3,text:'你提到他/她在你面前反而变得更安静——这被称为「紧张性抑制」，是一种因为在意而产生的情绪收缩。沉默，有时候比话多更说明问题。'},
 ];
 
-let cur=0,answers=Array(15).fill(null);
+let cur=0, answers=Array(15).fill(null);
 
-function makeStars(){
-  const s=document.getElementById('stars');
-  for(let i=0;i<80;i++){
-    const d=document.createElement('div');d.className='star';
-    const sz=Math.random()*2+.5;
-    d.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--a1:${(Math.random()*.3+.05).toFixed(2)};--a2:${(Math.random()*.5+.3).toFixed(2)};animation-delay:${(Math.random()*4).toFixed(1)}s`;
-    s.appendChild(d);
+// 验证码逻辑
+async function verifyCode() {
+  const input = document.getElementById('code-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('verify-error');
+  const btn = document.getElementById('btn-verify');
+  if(!input){ errEl.textContent='请输入验证码'; return; }
+  btn.disabled = true;
+  btn.textContent = '验证中...';
+  errEl.textContent = '';
+  try {
+    const { data, error } = await sb.from('codes').select('*').eq('code', input).single();
+    if(error || !data){ errEl.textContent='验证码不存在，请检查后重试'; btn.disabled=false; btn.textContent='验证并开始 →'; return; }
+    if(!data.is_active){ errEl.textContent='该验证码已被禁用'; btn.disabled=false; btn.textContent='验证并开始 →'; return; }
+    if(data.used_count >= data.max_uses){ errEl.textContent='该验证码已使用 '+data.max_uses+' 次，已达上限'; btn.disabled=false; btn.textContent='验证并开始 →'; return; }
+    currentCode = input;
+    currentCodeData = data;
+    const remaining = data.max_uses - data.used_count;
+    document.getElementById('uses-left').textContent = '验证码剩余可用次数：' + remaining + ' 次';
+    show('screen-landing');
+  } catch(e) {
+    errEl.textContent='网络错误，请重试';
+    btn.disabled=false;
+    btn.textContent='验证并开始 →';
   }
+}
+
+// 监听回车
+document.getElementById('code-input').addEventListener('keydown', e => { if(e.key==='Enter') verifyCode(); });
+
+async function startQuiz() {
+  if(!currentCode) { show('screen-verify'); return; }
+  // 使用次数+1
+  try {
+    await sb.from('codes').update({ used_count: currentCodeData.used_count + 1 }).eq('code', currentCode);
+    currentCodeData.used_count += 1;
+  } catch(e) { console.error(e); }
+  cur=0; answers=Array(15).fill(null);
+  show('screen-quiz'); renderQ();
 }
 
 function show(id){
@@ -229,8 +280,6 @@ function show(id){
   window.scrollTo(0,0);
 }
 
-function startQuiz(){cur=0;answers=Array(15).fill(null);show('screen-quiz');renderQ();}
-
 function renderQ(){
   const Q=QUESTIONS[cur];
   document.getElementById('q-counter').textContent=`第 ${cur+1} 题 / 共 15 题`;
@@ -238,16 +287,15 @@ function renderQ(){
   document.getElementById('dim-label').textContent=Q.dim;
   document.getElementById('q-text').textContent=Q.q;
   document.getElementById('progress-fill').style.width=((cur)/15*100)+'%';
-  const opts=document.getElementById('options');opts.innerHTML='';
+  const opts=document.getElementById('options'); opts.innerHTML='';
   Q.opts.forEach((o,i)=>{
     const b=document.createElement('button');
     b.className='opt'+(answers[cur]===i?' selected':'');
-    b.textContent=o;b.onclick=()=>selectOpt(i);
-    opts.appendChild(b);
+    b.textContent=o; b.onclick=()=>selectOpt(i); opts.appendChild(b);
   });
   document.getElementById('btn-prev').disabled=cur===0;
   const nb=document.getElementById('btn-next');
-  if(answers[cur]!==null)nb.classList.add('enabled');else nb.classList.remove('enabled');
+  if(answers[cur]!==null) nb.classList.add('enabled'); else nb.classList.remove('enabled');
   nb.textContent=cur===14?'查看结果 ✨':'下一题 →';
 }
 
@@ -256,69 +304,69 @@ function selectOpt(i){
   document.querySelectorAll('.opt').forEach((b,idx)=>b.classList.toggle('selected',idx===i));
   document.getElementById('btn-next').classList.add('enabled');
 }
-
-function nextQ(){if(answers[cur]===null)return;if(cur===14){showResult();return;}cur++;renderQ();}
-function prevQ(){if(cur>0){cur--;renderQ();}}
+function nextQ(){ if(answers[cur]===null) return; if(cur===14){showResult();return;} cur++; renderQ(); }
+function prevQ(){ if(cur>0){cur--;renderQ();} }
 
 function showResult(){
   let total=0;
   const dimScores={注意力信号:0,沟通信号:0,肢体信号:0,情绪信号:0,关心信号:0};
   const dimMax={注意力信号:21,沟通信号:21,肢体信号:21,情绪信号:21,关心信号:21};
-  answers.forEach((a,i)=>{
-    if(a===null)return;
-    const sc=QUESTIONS[i].scores[a];total+=sc;
-    dimScores[QUESTIONS[i].dim]+=sc;
-  });
+  answers.forEach((a,i)=>{ if(a===null)return; const sc=QUESTIONS[i].scores[a]; total+=sc; dimScores[QUESTIONS[i].dim]+=sc; });
   const score=Math.round(total/(15*7)*100);
   const R=RESULTS.find(r=>score>=r.min);
-
   document.getElementById('res-score').textContent=score;
   document.getElementById('res-title').textContent=R.emoji+' '+R.title;
   document.getElementById('res-desc').textContent=R.desc;
   document.getElementById('res-resonance').textContent=R.resonance;
-
-  const dbEl=document.getElementById('dim-bars');dbEl.innerHTML='';
+  const dbEl=document.getElementById('dim-bars'); dbEl.innerHTML='';
   let topDim='',topPct=0;
   DIMS.forEach(d=>{
     const pct=Math.round(dimScores[d]/dimMax[d]*100);
     if(pct>topPct){topPct=pct;topDim=d;}
-    const row=document.createElement('div');row.className='dim-row';
+    const row=document.createElement('div'); row.className='dim-row';
     row.innerHTML=`<div class="dim-row-head"><span>${d}</span><span>${pct}%</span></div><div class="dim-bar-bg"><div class="dim-bar-fill" style="width:0%" data-pct="${pct}"></div></div>`;
     dbEl.appendChild(row);
   });
-
   document.getElementById('highlight-text').innerHTML=`你在<span class="highlight-dim">「${topDim}」</span>维度得分最高（${topPct}%）。${DIM_THEORIES[topDim]}`;
-
   let specialMsg='';
-  SPECIAL_MSGS.forEach(sm=>{if(answers[sm.q]===sm.a)specialMsg=sm.text;});
-  const sb=document.getElementById('special-box');
-  if(specialMsg){sb.style.display='block';document.getElementById('special-text').textContent=specialMsg;}
-  else{sb.style.display='none';}
-
+  SPECIAL_MSGS.forEach(sm=>{ if(answers[sm.q]===sm.a) specialMsg=sm.text; });
+  const sb2=document.getElementById('special-box');
+  if(specialMsg){sb2.style.display='block';document.getElementById('special-text').textContent=specialMsg;}
+  else{sb2.style.display='none';}
   document.getElementById('sc-body').textContent=R.shareText;
   document.getElementById('share-card').classList.remove('visible');
-
+  const remaining = currentCodeData ? currentCodeData.max_uses - currentCodeData.used_count : 0;
+  document.getElementById('uses-remaining').textContent = remaining > 0 ? `验证码剩余 ${remaining} 次可用` : '验证码次数已用完';
   show('screen-result');
-  setTimeout(()=>{
-    document.querySelectorAll('.dim-bar-fill').forEach(el=>{el.style.width=el.dataset.pct+'%';});
-  },200);
+  setTimeout(()=>{ document.querySelectorAll('.dim-bar-fill').forEach(el=>{ el.style.width=el.dataset.pct+'%'; }); },200);
 }
 
-function toggleShareCard(){
-  document.getElementById('share-card').classList.toggle('visible');
+function retryTest(){
+  if(!currentCodeData) { show('screen-verify'); return; }
+  const remaining = currentCodeData.max_uses - currentCodeData.used_count;
+  if(remaining <= 0){ alert('验证码次数已用完，请购买新的验证码'); return; }
+  show('screen-landing');
+  document.getElementById('uses-left').textContent = '验证码剩余可用次数：' + remaining + ' 次';
 }
 
+function toggleShareCard(){ document.getElementById('share-card').classList.toggle('visible'); }
 function copyCard(){
-  const txt=document.getElementById('sc-body').textContent+'\n\nta也在偷偷喜欢你吗？来测一测 → crushtest.app';
+  const txt=document.getElementById('sc-body').textContent+'\n\nta也在偷偷喜欢你吗？来测一测 → online-test-virid-gamma.vercel.app';
   navigator.clipboard.writeText(txt).then(()=>{
-    const b=document.querySelector('.btn-copy');
-    b.textContent='已复制 ✓';
+    const b=document.querySelector('.btn-copy'); b.textContent='已复制 ✓';
     setTimeout(()=>b.textContent='复制文字',2000);
   });
 }
 
-function retry(){show('screen-landing');}
-
+function makeStars(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const d=document.createElement('div'); d.className='star';
+    const sz=Math.random()*2+.5;
+    d.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--a1:${(Math.random()*.3+.05).toFixed(2)};--a2:${(Math.random()*.5+.3).toFixed(2)};animation-delay:${(Math.random()*4).toFixed(1)}s`;
+    s.appendChild(d);
+  }
+}
 makeStars();
 </script>
 </body>
