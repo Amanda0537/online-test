@@ -33,8 +33,39 @@ COST_KEY_DENY_RE = re.compile(r"(rate|ratio|avg|average|per|cpc|cpm|cpa|roi|roas
 DATE_VALUE_RE = re.compile(r"^(\d{4})[-/]?(\d{2})[-/]?(\d{2})$")
 
 
-def normalize_date(value) -> str | None:
-    """把 '20260921' / '2026-09-21' / '2026/09/21' / 毫秒时间戳 统一成 YYYY-MM-DD。"""
+def get_tz(cfg: dict | None = None):
+    """报表统计时区。配置了 report_timezone 就用它，否则退回机器本地时区。
+
+    重要：这里必须填你账户在快手后台的报表时区，否则跨时区的机器上跑，
+    「今天/昨天」的判断会和后台差一天。
+    """
+    name = (cfg or {}).get("report_timezone") or os.environ.get("KWAI_REPORT_TZ")
+    if not name:
+        return None  # None = 机器本地时区
+    try:
+        from zoneinfo import ZoneInfo
+
+        return ZoneInfo(name)
+    except Exception as exc:
+        sys.exit(f"config.json 里的 report_timezone={name!r} 无法识别: {exc}")
+
+
+def today_in(tz) -> dt.date:
+    """报表时区下的「今天」，而不是机器本地的今天。"""
+    return dt.datetime.now(tz).date()
+
+
+def now_stamp(tz) -> str:
+    """带时区偏移的当前时间，写进 CSV 的 fetched_at，避免日后看不出是哪个时区。"""
+    return dt.datetime.now(tz).isoformat(timespec="seconds")
+
+
+def normalize_date(value, tz=None) -> str | None:
+    """把 '20260921' / '2026-09-21' / '2026/09/21' / 毫秒时间戳 统一成 YYYY-MM-DD。
+
+    字符串日期原样取用（后台给什么就是什么，不做换算）；只有时间戳这种绝对时刻
+    才需要换算，此时按 tz（报表时区）落地，而不是按 UTC。
+    """
     if value is None:
         return None
     if isinstance(value, (int, float)) and not isinstance(value, bool):
@@ -43,7 +74,8 @@ def normalize_date(value) -> str | None:
         if 10**12 <= num <= 10**13:
             num //= 1000
         if 10**9 <= num <= 2 * 10**9:
-            return dt.datetime.utcfromtimestamp(num).strftime("%Y-%m-%d")
+            moment = dt.datetime.fromtimestamp(num, dt.timezone.utc)
+            return moment.astimezone(tz).strftime("%Y-%m-%d")
         value = str(num)
     text = str(value).strip()
     m = DATE_VALUE_RE.match(text)
@@ -87,14 +119,14 @@ def iter_dict_lists(node, path="$"):
             yield from iter_dict_lists(val, f"{path}.{key}")
 
 
-def score_rows(rows: list[dict]) -> tuple[str, str] | None:
+def score_rows(rows: list[dict], tz=None) -> tuple[str, str] | None:
     """在一组行里找出 (日期字段, 消耗字段)；找不到返回 None。"""
     sample = rows[0]
     date_key = next((k for k in sample if DATE_KEY_RE.match(str(k))), None)
     if date_key is None:
         # 字段名不认识时，看值长得像不像日期
         date_key = next(
-            (k for k, v in sample.items() if normalize_date(v) is not None), None
+            (k for k, v in sample.items() if normalize_date(v, tz) is not None), None
         )
     if date_key is None:
         return None
@@ -117,17 +149,17 @@ def score_rows(rows: list[dict]) -> tuple[str, str] | None:
     return date_key, candidates[0]
 
 
-def extract_daily_rows(payload) -> list[dict] | None:
+def extract_daily_rows(payload, tz=None) -> list[dict] | None:
     """从一个接口返回体里抽出 [{date, cost_raw, source_keys}, ...]。"""
     best = None
     for path, rows in iter_dict_lists(payload):
-        keys = score_rows(rows)
+        keys = score_rows(rows, tz)
         if not keys:
             continue
         date_key, cost_key = keys
         parsed = []
         for row in rows:
-            date = normalize_date(row.get(date_key))
+            date = normalize_date(row.get(date_key), tz)
             cost = to_number(row.get(cost_key))
             if date is None or cost is None:
                 continue
@@ -162,7 +194,7 @@ TABLE_JS = r"""
 """
 
 
-def rows_from_tables(tables: list[dict]) -> list[dict] | None:
+def rows_from_tables(tables: list[dict], tz=None) -> list[dict] | None:
     """从页面表格里找 日期列 + 消耗列。表头是中文，所以单独匹配一套关键词。"""
     date_words = ("日期", "时间", "date", "day")
     cost_words = ("消耗", "花费", "花销", "费用", "支出", "cost", "spend", "charge")
@@ -182,7 +214,7 @@ def rows_from_tables(tables: list[dict]) -> list[dict] | None:
         for cells in table["rows"]:
             if di >= len(cells) or ci >= len(cells):
                 continue
-            date = normalize_date(cells[di])
+            date = normalize_date(cells[di], tz)
             cost = to_number(cells[ci])
             if date is None or cost is None:
                 continue

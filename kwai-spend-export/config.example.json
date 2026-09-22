@@ -5,10 +5,18 @@
   "auth_file": "auth.json",
   "output_csv": "kwai_daily_spend.csv",
   "days_back": 7,
+  "report_timezone": "Asia/Shanghai",
   "headless": true,
   "cost_divisor": 1,
   "currency": "USD",
-  "response_url_hints": ["report", "stat", "query", "data", "trend", "overview"],
+  "response_url_hints": [
+    "report",
+    "stat",
+    "query",
+    "data",
+    "trend",
+    "overview"
+  ],
   "nav_timeout_ms": 60000,
   "settle_ms": 8000
 }

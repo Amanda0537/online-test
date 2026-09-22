@@ -4,10 +4,13 @@
 用法: python3 test_extraction.py
 """
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from kwai_common import (
     extract_daily_rows,
+    get_tz,
     merge_csv,
     normalize_date,
     rows_from_tables,
@@ -27,7 +30,7 @@ check("date 紧凑", normalize_date("20260921"), "2026-09-21")
 check("date 连字符", normalize_date("2026-09-21"), "2026-09-21")
 check("date 斜杠", normalize_date("2026/09/21"), "2026-09-21")
 check("date 整数", normalize_date(20260921), "2026-09-21")
-check("date 毫秒戳", normalize_date(1789948800000), "2026-09-21")
+check("date 毫秒戳", normalize_date(1789948800000, timezone.utc), "2026-09-21")
 check("date 非日期", normalize_date("abc"), None)
 check("date None", normalize_date(None), None)
 
@@ -36,6 +39,26 @@ check("num 带币种", to_number("$1,234.56"), 1234.56)
 check("num 纯数", to_number(12.5), 12.5)
 check("num 空串", to_number("--"), None)
 check("num bool", to_number(True), None)
+
+# ---- 时区 ----
+SH = ZoneInfo("Asia/Shanghai")
+# 2026-09-21 17:00 UTC == 2026-09-22 01:00 北京时间：跨日的临界点
+ts = int(datetime(2026, 9, 21, 17, 0, tzinfo=timezone.utc).timestamp())
+check("时间戳 按UTC", normalize_date(ts, timezone.utc), "2026-09-21")
+check("时间戳 按北京时间", normalize_date(ts, SH), "2026-09-22")
+
+# 关键：字符串日期是后台直接给的统计日，任何时区下都必须原样保留，不能被换算
+for tz in (None, timezone.utc, SH, ZoneInfo("America/Los_Angeles")):
+    check(f"字符串日期不被换算 tz={tz}", normalize_date("20260921", tz), "2026-09-21")
+
+check("get_tz 读配置", get_tz({"report_timezone": "Asia/Shanghai"}), SH)
+check("get_tz 留空退回本地", get_tz({}), None)
+
+# 时区要能贯穿到整条提取链路
+payload_ts = {"list": [{"statDate": ts * 1000, "charge": 100.0}]}
+check("链路 按UTC", extract_daily_rows(payload_ts, timezone.utc)["rows"][0]["date"], "2026-09-21")
+check("链路 按北京时间", extract_daily_rows(payload_ts, SH)["rows"][0]["date"], "2026-09-22")
+
 
 # ---- 接口返回体：常见嵌套形态 ----
 payload = {

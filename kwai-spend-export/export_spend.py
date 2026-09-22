@@ -22,22 +22,28 @@ from playwright.sync_api import sync_playwright
 
 from kwai_common import (
     TABLE_JS,
+    get_tz,
     launch_kwargs,
     extract_daily_rows,
     load_config,
     log,
     looks_like_login_page,
     merge_csv,
+    now_stamp,
     rows_from_tables,
+    today_in,
 )
 
 EXIT_AUTH = 2
 EXIT_NO_DATA = 3
 
 
-def date_window(cfg: dict, args) -> tuple[dt.date, dt.date]:
-    """要抓取的日期区间。默认 [今天-days_back, 今天]，必定覆盖前一天。"""
-    end = dt.date.fromisoformat(args.end) if args.end else dt.date.today()
+def date_window(cfg: dict, args, tz) -> tuple[dt.date, dt.date]:
+    """要抓取的日期区间。默认 [今天-days_back, 今天]，必定覆盖前一天。
+
+    「今天」按报表时区算，不是按机器本地时区 —— 跨时区的服务器上这两者可能差一天。
+    """
+    end = dt.date.fromisoformat(args.end) if args.end else today_in(tz)
     if args.start:
         start = dt.date.fromisoformat(args.start)
     else:
@@ -118,7 +124,7 @@ def collect(cfg: dict, headless: bool, discover: bool, target_url: str):
     return captured, tables, final_url, html
 
 
-def run_discover(cfg: dict, headless: bool, url: str) -> int:
+def run_discover(cfg: dict, headless: bool, url: str, tz) -> int:
     captured, tables, final_url, html = collect(cfg, headless, True, url)
     if looks_like_login_page(final_url, html):
         log("看起来登录态已失效，请重新执行: python3 login.py")
@@ -127,7 +133,7 @@ def run_discover(cfg: dict, headless: bool, url: str) -> int:
     out = Path("discover_dump.json")
     summary = []
     for item in captured:
-        hit = extract_daily_rows(item["body"])
+        hit = extract_daily_rows(item["body"], tz)
         summary.append(
             {
                 "url": item["url"],
@@ -163,7 +169,7 @@ def run_discover(cfg: dict, headless: bool, url: str) -> int:
     return 0
 
 
-def run_export(cfg: dict, headless: bool, url: str, start: dt.date, end: dt.date) -> int:
+def run_export(cfg: dict, headless: bool, url: str, start: dt.date, end: dt.date, tz) -> int:
     captured, tables, final_url, html = collect(cfg, headless, False, url)
 
     if looks_like_login_page(final_url, html):
@@ -172,7 +178,7 @@ def run_export(cfg: dict, headless: bool, url: str, start: dt.date, end: dt.date
 
     best, source = None, ""
     for item in captured:
-        hit = extract_daily_rows(item["body"])
+        hit = extract_daily_rows(item["body"], tz)
         if hit and (best is None or len(hit["rows"]) > len(best["rows"])):
             best, source = hit, f"xhr:{item['url'].split('?')[0]}"
 
@@ -181,7 +187,7 @@ def run_export(cfg: dict, headless: bool, url: str, start: dt.date, end: dt.date
         log(f"从接口取到 {len(rows)} 行（字段 {best['date_key']} / {best['cost_key']}）")
     else:
         log("接口里没识别出日消耗，改用页面表格兜底……")
-        rows = rows_from_tables(tables) or []
+        rows = rows_from_tables(tables, tz) or []
         source = "dom-table"
         if rows:
             log(f"从页面表格取到 {len(rows)} 行")
@@ -191,7 +197,7 @@ def run_export(cfg: dict, headless: bool, url: str, start: dt.date, end: dt.date
         return EXIT_NO_DATA
 
     divisor = cfg.get("cost_divisor", 1) or 1
-    fetched_at = dt.datetime.now().isoformat(timespec="seconds")
+    fetched_at = now_stamp(tz)
 
     out_rows = []
     for row in rows:
@@ -233,12 +239,13 @@ def main() -> int:
 
     cfg = load_config(args.config)
     headless = cfg.get("headless", True) and not args.show
-    start, end = date_window(cfg, args)
+    tz = get_tz(cfg)
+    start, end = date_window(cfg, args, tz)
     url = build_url(cfg, start, end)
     if args.discover:
-        return run_discover(cfg, headless, url)
-    log(f"目标区间: {start} ~ {end}")
-    return run_export(cfg, headless, url, start, end)
+        return run_discover(cfg, headless, url, tz)
+    log(f"目标区间: {start} ~ {end}（时区: {cfg.get('report_timezone') or '机器本地时区'}）")
+    return run_export(cfg, headless, url, start, end, tz)
 
 
 if __name__ == "__main__":
