@@ -1,0 +1,14 @@
+{
+  "account_id": "75566086",
+  "report_url": "https://ads.kwai.com/?accountId=75566086#/index",
+  "report_url_template": "",
+  "auth_file": "auth.json",
+  "output_csv": "kwai_daily_spend.csv",
+  "days_back": 7,
+  "headless": true,
+  "cost_divisor": 1,
+  "currency": "USD",
+  "response_url_hints": ["report", "stat", "query", "data", "trend", "overview"],
+  "nav_timeout_ms": 60000,
+  "settle_ms": 8000
+}

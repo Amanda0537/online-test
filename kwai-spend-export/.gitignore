@@ -1,0 +1,10 @@
+# 登录凭证，绝对不要提交
+auth.json
+# 个人配置（含账户 ID / 路径）
+config.json
+# 产出与日志
+*.csv
+logs/
+discover_dump.json
+discover_page.png
+__pycache__/
