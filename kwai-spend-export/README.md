@@ -7,7 +7,11 @@
 
 不去猜后台页面的 CSS 选择器（后台一改版就失效），而是**监听报表页自己发出的 XHR**，
 在返回的 JSON 里自动识别「日期字段 + 消耗字段」。识别不到才回退去抓页面表格。
-所以后台前端改版通常不影响它，只有接口字段改名才需要调整。
+
+拿指定日期的数据靠**请求重放**：自定义报表页（`#/report/customReport`）的日期区间是
+页面内部状态、不在 URL 上，所以拼 URL 行不通。脚本先让页面正常加载一次、捕获它发出的
+报表请求，若返回的数据不含目标日期，就把请求里的日期参数改写成目标区间、用同一个登录态
+重发一次。这样既不用点日期控件，也不受前端改版影响。
 
 ## 安装
 
@@ -22,6 +26,19 @@ cp config.example.json config.json # 然后按需改 config.json
 
 > 如果机器上已有 Playwright 的 chromium，不想再下一份，可以设
 > `export PW_CHROMIUM_PATH=/path/to/chrome` 直接复用。
+
+## 先在后台把报表建好（重要）
+
+脚本读的是**你在后台配好的那张自定义报表**，所以先手动准备一次：
+
+1. 进 **Reports → Create Report**
+2. 粒度选 **By day**
+3. **时区**下拉：确认选的是哪个（默认 `UTC+08:00(CST)`）—— 这个值要和 config.json 里的
+   `report_timezone` 对上，详见下文「时区」
+4. **Configure Report** 里把指标勾上（至少要有消耗/Cost）
+5. **Save** 保存，记下报表名
+
+之后脚本每次打开这张报表页，日期区间由脚本自己改写，你不用管。
 
 ## 三步跑通
 
@@ -39,26 +56,30 @@ python3 export_spend.py
 第 2 步会生成 `discover_dump.json`（所有 JSON 接口 + 命中情况）和 `discover_page.png`
 （页面截图）。**如果第 3 步取不到数，就是靠这个文件来定位问题的。**
 
-## 日期区间（定时任务前必须确认）
+## 日期区间
 
-这是最容易踩的坑：**凌晨 1 点跑的时候，报表页默认区间通常是「今天」**，而此时今天
-才刚开始、消耗接近 0，前一天的数据可能压根不在返回里。
+凌晨 1 点跑有个坑：报表页默认区间通常不含前一天。脚本用**请求重放**解决 —— 发现首次
+返回不含目标日期时，自动改写报表请求里的日期参数再发一次。日志里会看到：
 
-脚本默认抓 `[今天 - days_back, 今天]`，也支持显式指定：
+```
+[01:00:03] 页面首次返回 7 行（字段 statDate / charge）
+[01:00:03] 首次返回不含目标区间 2026-09-15 ~ 2026-09-22，尝试重放请求……
+[01:00:04] 重放报表请求（改写了 2 个日期参数）→ 2026-09-15 ~ 2026-09-22
+[01:00:04] 重放取到 8 行
+```
+
+手动指定区间：
 
 ```bash
 python3 export_spend.py --start 2026-09-21 --end 2026-09-21
 ```
 
-但要让**页面**按这个区间返回数据，得告诉脚本怎么把日期拼进 URL。跑一次 `--discover`，
-在后台手动选好日期范围，看地址栏变成什么样，然后在 `config.json` 里加一行，例如：
+如果日志里出现「没找到可改写的日期参数」，说明该后台的日期参数命名不在识别范围内 ——
+跑一次 `--discover`，把 `discover_dump.json` 里报表请求的参数名看一下，
+在 `request_replay.py` 的 `START_KEY_RE` / `END_KEY_RE` 里补上即可。
 
-```json
-"report_url_template": "https://ads.kwai.com/?accountId=75566086#/report?startDate={start}&endDate={end}"
-```
-
-可用占位符：`{start}` `{end}`（`YYYY-MM-DD`）、`{start_compact}` `{end_compact}`（`YYYYMMDD`）。
-不配这一项就按报表页的默认区间取，**上线定时任务前请先验证前一天的数据确实能抓到**。
+极少数后台确实把日期放在 URL 上，那种情况可以配 `report_url_template`，
+占位符：`{start}` `{end}`（`YYYY-MM-DD`）、`{start_compact}` `{end_compact}`（`YYYYMMDD`）。
 
 ## 每日凌晨 1 点自动跑
 
@@ -146,8 +167,19 @@ cookie 有有效期（通常几天到几周），过期后任务会以退出码 
 
 留空则退回机器本地时区。也可以用环境变量 `KWAI_REPORT_TZ` 覆盖。
 
-**怎么确认你账户的报表时区**：在后台账户设置里看（开户时选定的时区），或者更直接 ——
-跑一次导出，拿 CSV 里某一天的数字和后台页面上同一天的数字对一下，对得上就说明配对了。
+**怎么确认**：时区在 Kwai 后台是**报表级**的设置 —— 报表页顶部有个时区下拉，
+默认 `UTC+08:00(CST)`，可以每张报表单独改。config.json 里的 `report_timezone` 要和
+**你那张报表里选的那个值**一致：
+
+| 报表页下拉选的 | config.json 填 |
+| --- | --- |
+| `UTC+08:00(CST)` | `Asia/Shanghai` |
+| `UTC+00:00` | `UTC` |
+| `UTC-08:00(PST)` | `America/Los_Angeles` |
+| `UTC-05:00(EST)` | `America/New_York` |
+
+改了报表里的时区，记得同步改 config.json，否则「今天/昨天」的判断会错位。
+最终验证：跑一次导出，拿 CSV 里某一天的数字和后台页面同一天的数字对一下。
 
 `fetched_at` 列记的是**抓取动作发生的时刻**，带时区偏移（如 `2026-09-22T01:00:11+08:00`），
 和 `date` 列不是一回事，不要混用。
@@ -167,8 +199,8 @@ date,account_id,spend,currency,fetched_at,source
 | 字段 | 说明 |
 | --- | --- |
 | `account_id` | 账户 ID，只用于写进 CSV 的一列 |
-| `report_url` | 报表页地址 |
-| `report_url_template` | 可选，带日期占位符的报表页地址，见上文「日期区间」 |
+| `report_url` | 报表页地址，用自定义报表页 `#/report/customReport` |
+| `report_url_template` | 可选，仅当后台把日期放在 URL 上时才需要，见「日期区间」 |
 | `auth_file` | 登录态文件路径，默认 `auth.json` |
 | `output_csv` | 产出 CSV 路径 |
 | `days_back` | 每次回补多少天，默认 7 |
@@ -190,11 +222,13 @@ date,account_id,spend,currency,fetched_at,source
 ## 自测
 
 ```bash
-python3 test_extraction.py
+python3 test_extraction.py   # 字段识别、时区、CSV 合并
+python3 test_replay.py       # 日期参数改写
 ```
 
 覆盖日期归一化、金额解析、接口 JSON 的字段识别（含多候选择优、汇总 vs 明细）、
-中文表头的表格兜底、CSV 按日期合并。不需要网络和登录态。
+表格兜底、CSV 按日期合并、跨日时区换算，以及日期参数改写（含格式保持、
+不误伤账户 ID 这类数字）。不需要网络和登录态。
 
 ## 安全须知
 
@@ -205,8 +239,8 @@ python3 test_extraction.py
 
 ## 已知局限
 
-- **未在真实的 ads.kwai.com 上验证过。** 字段识别逻辑和 CSV 合并有自测覆盖，
-  端到端链路在本地模拟报表页上跑通过，但真实后台的接口结构、日期参数格式需要你跑一次
-  `--discover` 来确认。
+- **未在真实的 ads.kwai.com 上验证过。** 字段识别、时区换算、日期参数改写都有自测覆盖，
+  端到端链路（含请求重放）在本地模拟报表页上跑通过，但真实后台的接口结构、
+  日期参数命名需要你跑一次 `--discover` 来确认。
 - 只做账户维度总消耗，不拆 campaign / adgroup。
 - `date` 列以后台报表自身的统计时区为准，脚本不做换算；跨时区部署时请配 `report_timezone`，详见「时区」一节。

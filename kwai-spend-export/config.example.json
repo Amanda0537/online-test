@@ -1,6 +1,6 @@
 {
   "account_id": "75566086",
-  "report_url": "https://ads.kwai.com/?accountId=75566086#/index",
+  "report_url": "https://ads.kwai.com/?accountId=75566086#/report/customReport",
   "report_url_template": "",
   "auth_file": "auth.json",
   "output_csv": "kwai_daily_spend.csv",
