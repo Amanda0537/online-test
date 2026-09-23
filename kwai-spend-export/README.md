@@ -1,7 +1,26 @@
-# Kwai Ads 账户每日花费导出
+# Kwai Ads 每日花费 -> 飞书表格
 
-用 Playwright 复用你自己的登录态，打开 ads.kwai.com 报表页，把**账户维度的每日消耗**
-合并写入一个 CSV，并支持每天凌晨定时自动跑。
+每天 5:00 自动打开 ads.kwai.com 报表页，抓**账户维度的每日消耗**（北京时区），
+写入本地 CSV，再按日期幂等同步到飞书电子表格。
+
+```
+launchd 每天 05:00
+  └─ export_spend.py   Playwright 复用登录态 -> 抓日消耗 -> 合并进 CSV
+  └─ push_feishu.py    读 CSV -> 按日期 upsert 进飞书表格
+        └─ 任一步失败 -> 飞书群机器人告警
+```
+
+两步分开跑是有意的：抓取和推送是两类失败。CSV 是本地事实源，
+飞书挂了只需重跑推送，数据不会丢。
+
+## 先看这个：它的稳定性边界
+
+基于登录态的爬虫有一个**无法自动化消除**的环节：cookie 会过期（通常几天到几周），
+过期后必须有人手动重登一次。脚本会在过期时立刻发飞书告警，重登也简化成了一条命令
+（`./relogin.sh`），但做不到完全无人值守。
+
+要真正无人值守，得走 Kwai 官方 Reporting API（OAuth + refresh_token 自动续期），
+需邮件申请授权。这套代码的抓取层是可替换的，将来接 API 时飞书写入、调度、告警都不用动。
 
 ## 它是怎么取数的
 
@@ -21,8 +40,11 @@
 cd kwai-spend-export
 pip install -r requirements.txt
 playwright install chromium        # 下载浏览器，约 150MB，只需一次
-cp config.example.json config.json # 然后按需改 config.json
+cp config.example.json config.json
+cp .env.example .env
 ```
+
+然后改 `config.json`（报表地址、时区）和 `.env`（飞书凭证）。
 
 > 如果机器上已有 Playwright 的 chromium，不想再下一份，可以设
 > `export PW_CHROMIUM_PATH=/path/to/chrome` 直接复用。
@@ -81,69 +103,74 @@ python3 export_spend.py --start 2026-09-21 --end 2026-09-21
 极少数后台确实把日期放在 URL 上，那种情况可以配 `report_url_template`，
 占位符：`{start}` `{end}`（`YYYY-MM-DD`）、`{start_compact}` `{end_compact}`（`YYYYMMDD`）。
 
-## 每日凌晨 1 点自动跑
+## 飞书配置
 
-`run_daily.sh` 是定时入口：带文件锁（防重入）、失败重试（60s/180s）、按月切分日志，
-登录态过期时会弹系统通知（设了 `WEBHOOK_URL` 还会推到企微/钉钉/Slack）。
+1. 到[飞书开发者后台](https://open.feishu.cn/app)建一个**自建应用**
+2. 权限管理里开通电子表格的**查看、评论、编辑**权限，然后**发布应用**（不发布 API 不生效）
+3. 打开你的目标电子表格 → 右上角分享 → 把这个应用添加为**可编辑**协作者
+   （这一步最容易漏，漏了会报无权限）
+4. 从应用详情页拿 `App ID` / `App Secret`，填进 `.env`
+5. 表格 URL 里 `/sheets/` 后面那串是 `FEISHU_SPREADSHEET_TOKEN`，
+   `?sheet=` 后面那段是 `FEISHU_SHEET_ID`
+6. 可选：建个飞书群机器人，把 webhook 填进 `FEISHU_WEBHOOK`，失败时会推群
 
-它抓的是最近 `days_back` 天而不是只抓前一天 —— 广告平台的消耗有回传延迟和事后校准，
-多回补几天能让历史数字自动修正。CSV 按日期合并，同一天重复抓只会更新、不会新增行。
-
-### macOS（推荐 launchd）
-
-cron 在笔记本休眠时不会补跑，launchd 会在唤醒后补跑一次，更适合凌晨的任务。
-
-把下面存成 `~/Library/LaunchAgents/com.kwai.spend.export.plist`（路径换成你自己的）：
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>Label</key><string>com.kwai.spend.export</string>
-  <key>ProgramArguments</key>
-  <array><string>/绝对路径/kwai-spend-export/run_daily.sh</string></array>
-  <key>WorkingDirectory</key><string>/绝对路径/kwai-spend-export</string>
-  <key>StartCalendarInterval</key><dict>
-    <key>Hour</key><integer>1</integer><key>Minute</key><integer>0</integer>
-  </dict>
-  <key>StandardErrorPath</key><string>/绝对路径/kwai-spend-export/logs/launchd.err</string>
-</dict></plist>
-```
+配好后**先自检**，别直接上定时任务：
 
 ```bash
-launchctl load ~/Library/LaunchAgents/com.kwai.spend.export.plist
-launchctl start com.kwai.spend.export   # 立刻跑一次验证
+python3 push_feishu.py --check
 ```
 
-### Linux / 常开服务器（cron）
+它会依次验证鉴权、读表、写表，最后把测试行清掉。四步都 OK 才算通。
+
+表格第一列是日期，作为主键。重复推送同一天只会覆盖，不会新增行。
+
+## 每天 5:00 自动跑
+
+```bash
+./install_schedule.sh
+```
+
+装完立即试跑一次确认：
+
+```bash
+launchctl start com.kwai.spend.sync
+tail -f logs/run_$(date +%Y-%m).log
+```
+
+想换时间：`HOUR=7 MINUTE=30 ./install_schedule.sh`
+
+用 launchd 而不是 cron，是因为笔记本 5AM 多半在休眠 —— cron 会直接漏跑，
+launchd 会在唤醒后补跑一次。
+
+**前提：这台机器 5:00 必须开着**（休眠可以，关机不行）。要真正稳定，
+放一台常开的机器。不建议放云服务器或 CI：云端 IP 和你平时登录的 IP 不一致，
+大概率触发风控，反而更不稳。
+
+### Linux 服务器
 
 ```bash
 crontab -e
-# 每天 01:00
-0 1 * * * /绝对路径/kwai-spend-export/run_daily.sh
+0 5 * * * /绝对路径/kwai-spend-export/run_daily.sh
 ```
 
-服务器上没有图形界面时，`login.py` 需要有界面的浏览器才能登录。做法是：
-在自己电脑上跑 `login.py` 生成 `auth.json`，再把这个文件拷到服务器（它等同于登录凭证，
-走安全通道传，别丢群里）。
+服务器没有图形界面，`login.py` 跑不了。做法是在自己电脑上生成 `auth.json` 再拷过去
+（等同于登录凭证，走安全通道传）。
 
-### Windows（任务计划程序）
+### 为什么抓最近 7 天而不是只抓前一天
 
-1. 打开「任务计划程序」→「创建基本任务」
-2. 触发器：每天，01:00
-3. 操作：启动程序 → `python`，参数 `export_spend.py`，起始于 `C:\路径\kwai-spend-export`
-4. 在任务属性里勾选「不管用户是否登录都要运行」和「唤醒计算机运行此任务」
-
-### 一个前提
-
-**凌晨 1 点机器得是开着的**。笔记本关机/休眠时 cron 不会补跑（launchd 会在唤醒后补）。
-要真正稳定，放在一台常开的机器或服务器上跑。
+5:00 时前一天的消耗可能还在校准。固定回补最近 `days_back` 天，
+CSV 和飞书都按日期主键覆盖，历史数字会自动修正，也不会写重复行。
 
 ## 登录态会过期
 
-cookie 有有效期（通常几天到几周），过期后任务会以退出码 2 结束并告警。
-届时重新在有界面的环境跑一次 `python3 login.py` 即可。这是这套方案无法自动化掉的一环 ——
-如果你不想每隔一阵手动续一次，正路是去申请 Kwai Ads 开放平台的 API 授权。
+cookie 有有效期（通常几天到几周），过期后任务立刻以退出码 2 结束、推飞书告警，
+**不会**去动飞书表格（避免写入半截数据）。续期就一条命令：
+
+```bash
+./relogin.sh
+```
+
+它会弹浏览器让你登录，然后立刻验证一次抓取。这是这套方案无法自动化掉的一环。
 
 ## 时区
 
@@ -216,23 +243,29 @@ date,account_id,spend,currency,fetched_at,source
 | 码 | 含义 |
 | --- | --- |
 | 0 | 成功 |
-| 2 | 登录态失效，需重跑 `login.py` |
+| 1 | 连续 3 次抓取失败 |
+| 2 | 登录态失效，跑 `./relogin.sh` |
 | 3 | 没抓到目标区间的数据，跑 `--discover` 排查 |
+| 4 | 飞书配置缺失，检查 `.env` |
+| 5 | 数据已进 CSV，但推送飞书失败（数据没丢，重跑 `push_feishu.py` 即可） |
 
 ## 自测
 
 ```bash
 python3 test_extraction.py   # 字段识别、时区、CSV 合并
 python3 test_replay.py       # 日期参数改写
+python3 test_feishu.py       # 飞书幂等写入（起模拟服务端，不碰真实表格）
 ```
 
 覆盖日期归一化、金额解析、接口 JSON 的字段识别（含多候选择优、汇总 vs 明细）、
-表格兜底、CSV 按日期合并、跨日时区换算，以及日期参数改写（含格式保持、
-不误伤账户 ID 这类数字）。不需要网络和登录态。
+表格兜底、CSV 按日期合并、跨日时区换算、日期参数改写（含格式保持、
+不误伤账户 ID 这类数字），以及飞书幂等写入（重推不产生重复行、回补能改老值）。
+都不需要网络、登录态或真实飞书应用。
 
 ## 安全须知
 
 - `auth.json` 等同于你的后台登录凭证，`.gitignore` 已排除，**不要提交、不要外发**。
+- `.env` 里是飞书应用密钥，同样已排除，泄露等于把表格写权限给了别人。
 - `discover_dump.json` 含接口原始返回，可能带账户数据，发给别人前先自己过一眼。
 - 这是用你自己的登录态访问你自己的账户，属于常规自动化；但它依赖后台前端结构，
   平台改版可能随时让它失效。长期稳定的方案仍是官方 API。
@@ -242,5 +275,9 @@ python3 test_replay.py       # 日期参数改写
 - **未在真实的 ads.kwai.com 上验证过。** 字段识别、时区换算、日期参数改写都有自测覆盖，
   端到端链路（含请求重放）在本地模拟报表页上跑通过，但真实后台的接口结构、
   日期参数命名需要你跑一次 `--discover` 来确认。
+- **飞书接口地址未对真实环境验证过**（写代码的环境访问不了飞书文档站）。
+  幂等逻辑用模拟服务端测透了，但接口路径请用 `push_feishu.py --check` 实地验一次；
+  若飞书调整了接口版本，改 `feishu_sheet.py` 顶部的常量即可。
 - 只做账户维度总消耗，不拆 campaign / adgroup。
+- cookie 过期需人工重登，无法自动化（见开头「稳定性边界」）。
 - `date` 列以后台报表自身的统计时区为准，脚本不做换算；跨时区部署时请配 `report_timezone`，详见「时区」一节。

@@ -8,3 +8,6 @@ logs/
 discover_dump.json
 discover_page.png
 __pycache__/
+
+# 凭证
+.env
